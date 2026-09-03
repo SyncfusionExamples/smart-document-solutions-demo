@@ -1,0 +1,2320 @@
+html, body {
+    min-height: 100%;
+    margin: 0;
+    background: #f4f7fb;
+    /* The page itself is rendered as a single viewport-sized
+       surface. Partial-view content that overflows the
+       available height is expected to add its own
+       scrollbar, never the page itself. */
+    overflow: hidden;
+}
+
+body {
+    overflow: hidden;
+}
+
+html, body, button, input, textarea, select {
+    font-family: Inter, system-ui, -apple-system, Segoe UI, sans-serif;
+}
+
+*, *::before, *::after {
+    font-family: inherit;
+}
+
+.upload-shell {
+    height: calc(100vh - 100px);
+    min-height: 0;
+    display: grid;
+    grid-template-columns: 260px minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+    gap: 12px;
+    padding: 10px 14px 18px;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+.upload-panel {
+    min-height: 0;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+    padding: 12px;
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.03);
+    overflow: hidden;
+}
+
+.upload-left, .upload-right {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.review-mode-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.section-title {
+    margin: 0;
+    padding: 2px 2px 6px;
+    font-size: 14px;
+    line-height: 1.2;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    color: #6b7280;
+    text-transform: uppercase;
+}
+
+.review-mode-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.review-mode-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    min-height: 34px;
+    padding: 7px 10px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    background: transparent;
+    color: #1f2937;
+    text-align: left;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.review-mode-item:hover {
+    background: #f8fafc;
+    border-color: #eef2f7;
+}
+
+.review-mode-item.active {
+    background: #edf4ff;
+    border-color: #d9e7ff;
+    color: #1d4ed8;
+    font-weight: 600;
+    box-shadow: inset 0 0 0 1px rgba(29, 78, 216, 0.05);
+}
+
+.mode-icon {
+    width: 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: inherit;
+    opacity: 0.8;
+    font-size: 13px;
+    line-height: 1;
+    flex-shrink: 0;
+}
+
+.mode-label {
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+
+.upload-center {
+    min-height: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding-bottom: 12px;
+    box-sizing: border-box;
+}
+
+#centre-panel {
+    /* The centre panel is the host of all workflow
+       views. It must fill the column so the viewer
+       + callout inside can take the available height.
+       Without flex:1 the panel collapses to its
+       content height and the viewer is squashed. */
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.upload-center-full {
+    grid-template-rows: 1fr;
+    padding: 0;
+    gap: 0;
+}
+
+.full-viewer-wrap {
+    /* Grow to fill the column above the fixed-height
+       callout below. The wrapper is now a plain flex
+       container, NOT a `position:relative` shell for an
+       absolutely positioned host. The previous design
+       used `position:absolute; inset:0` so EJ2 could
+       anchor its chrome to the wrapper, but EJ2 also
+       sets `style.height:"100%"` on the host inline
+       and `inset:0` in concert with that inline rule
+       ended up letting the host grow to its measured
+       content height instead of staying glued to the
+       wrapper. Switching the wrapper to a plain flex
+       column with `flex:1 1 0` and giving the host
+       `flex:1 1 auto; min-height:0` makes the column
+       space unambiguous to the EJ2 measurement - the
+       host is forced to grow to fill whatever the
+       flex column offers, even after EJ2 mutates its
+       own inline styles. The `min-height: 0` is the
+       key: it lets the child shrink below its
+       content height, which is what the host needs
+       for the host's measurement to be driven by the
+       column, not by EJ2's toolbar chrome. */
+    flex: 1 1 0;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* EJ2's PdfViewer appendTo() measures the host's
+   clientHeight immediately to size its internal
+   canvas. After a same-tab mode flip (View -> Review
+   -> Redact -> ... -> View) the host had previously
+   reported a small height to the viewer (because the
+   wrapper had not yet committed its final flex box
+   at appendTo time). The host now stretches to fill
+   the wrapper, and the JS guarantees the wrapper
+   already has a real measured height before EJ2
+   mounts (see mountPdfViewer() in claimIntake.js).
+   `flex:1` is what actually drives the height here;
+   we keep a defensive min-height of 300px only as a
+   final safety net in case the column itself is
+   unusually short (e.g. very small browser window). */
+.pdf-viewer-host {
+    flex: 1 1 auto;
+    min-height: 300px;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+.view-callout {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex: 0 0 auto;
+    min-height: 56px;
+    margin-top: 12px;
+    padding: 10px 16px;
+    background: #dff5e0;
+    border: 1px solid #88c97d;
+    border-radius: 12px;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
+    box-sizing: border-box;
+}
+
+.view-callout-text {
+    color: #1f3b22;
+    font-size: 14px;
+    line-height: 1.4;
+    font-weight: 500;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.view-callout .primary-btn {
+    flex: 0 0 auto;
+    min-width: 110px;
+}
+
+.center-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 18px;
+    padding: 4px 4px 8px;
+}
+
+.center-header-compact {
+    padding: 0 16px;
+}
+
+.center-header h1 {
+    font-size: clamp(2.2rem, 2.4vw, 3.2rem);
+    line-height: 1.08;
+    font-weight: 800;
+    letter-spacing: -0.05em;
+    color: #0f172a;
+    margin-bottom: 10px;
+}
+
+.landing-intro {
+    max-width: 1160px;
+    line-height: 1.55;
+    color: #46556d;
+    margin-top: 8px;
+    margin-bottom: 0;
+    /* Match the global page font and the body-copy size used
+       by .choose-scenario-body / .view-callout-text so the
+       landing intro reads at the same scale as the rest of
+       the centre panel. */
+    font-family: Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-size: 13.5px;
+}
+
+.upload-center-full .viewer-wrap {
+    min-height: 0;
+    height: 100%;
+}
+
+.panel-title, .center-header, .upload-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+h1, h2, p {
+    margin: 0;
+}
+
+
+
+.review-confidence-summary {
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.review-confidence-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 12px;
+    border-radius: 999px;
+    background: #fdf3d2;
+    color: #8a6d1a;
+    border: 1px solid #f5d97a;
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.3;
+    white-space: nowrap;
+}
+
+.pill {
+    padding: 0.35rem 0.7rem;
+    border-radius: 999px;
+    background: #edf4ff;
+    color: #1d4ed8;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+    .pill.live {
+        background: #e9f7ec;
+        color: #13733e;
+    }
+
+/* =========================================================
+   CHOOSE STEP - TEMPLATE PICKER
+   ========================================================= */
+
+.choose-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    min-height: 0;
+}
+
+.choose-template-shell {
+    display: none;
+}
+
+.choose-panel-header {
+    display: none;
+}
+
+.choose-panel-header-actions {
+    display: none;
+}
+
+.add-files-link {
+    border: none;
+    background: transparent;
+    color: #1d4ed8;
+    padding: 0;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    box-shadow: none;
+    line-height: 1.2;
+}
+
+.add-files-link:hover,
+.add-files-link:focus {
+    background: transparent;
+    outline: none;
+    text-decoration: none;
+}
+
+.choose-panel-header h2 {
+    display: none;
+}
+
+.choose-panel-header p {
+    display: none;
+}
+
+.choose-template-grid {
+    display: none;
+}
+
+.template-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    padding: 0;
+    border: 1px solid #dfe5ee;
+    border-radius: 16px;
+    background: #fff;
+    cursor: pointer;
+    overflow: hidden;
+    text-align: left;
+    transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease;
+    color: inherit;
+    font: inherit;
+    min-height: 150px;
+    min-width: 210px;
+    flex: 0 0 210px;
+    box-sizing: border-box;
+}
+
+    .template-card:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
+        border-color: #2b76ff;
+    }
+
+    .template-card:active:not(:disabled) {
+        transform: translateY(0);
+    }
+
+    .template-card:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    .template-card.loading {
+        border-color: #2b76ff;
+        box-shadow: 0 0 0 3px rgba(43, 118, 255, 0.15);
+    }
+
+.template-card-preview {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 90px;
+    background: linear-gradient(180deg, #f6faff 0%, #edf4ff 100%);
+    border-bottom: 1px solid #e5ebf3;
+    color: #1d4ed8;
+    padding: 10px 8px;
+}
+
+.template-card-glyph {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: #2563eb;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    box-shadow: 0 8px 18px rgba(37, 99, 235, 0.14);
+}
+
+.template-card-name {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #1f2937;
+    word-break: break-word;
+    text-align: center;
+    padding: 0 8px;
+    margin-top: 2px;
+}
+
+.template-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 10px 9px;
+    background: #fff;
+    color: #2b76ff;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-top: auto;
+    border-top: 1px solid #eef2f7;
+}
+
+.template-card-arrow {
+    font-size: 16px;
+    line-height: 1;
+}
+
+.template-empty {
+    grid-column: 1 / -1;
+    padding: 24px;
+    text-align: center;
+    color: #5f6f88;
+    border: 1px dashed #dfe5ee;
+    border-radius: 14px;
+    background: #fbfdff;
+}
+
+.packet-contents-panel {
+    margin-top: 12px;
+    border: 1px solid #dfeaf8;
+    border-radius: 18px;
+    background: #fff;
+    overflow: visible;
+    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.02);
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    max-height: 50vh;
+    flex: 1 1 auto;
+}
+
+.packet-contents-title {
+    padding: 14px 16px 12px;
+    font-size: 1.1rem;
+    font-weight: 800;
+    line-height: 1.2;
+    color: #0f172a;
+    text-transform: none;
+    background: transparent;
+    border-bottom: none;
+    flex-shrink: 0;
+}
+
+.packet-contents-scroll {
+    overflow: auto;
+    max-height: 100%;
+    min-height: 0;
+    background: #fff;
+    flex: 1 1 auto;
+    border-radius: 0 0 16px 16px;
+}
+
+.packet-contents-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+    background: #fff;
+}
+
+.packet-contents-table th,
+.packet-contents-table td {
+    padding: 12px 14px;
+    text-align: left;
+    border-bottom: 1px solid #edf3ff;
+    font-size: 0.9rem;
+    color: #1f2937;
+    word-break: break-word;
+}
+
+.packet-contents-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: #f4f8ff;
+    color: #475569;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+}
+
+.packet-contents-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.packet-contents-table tbody tr:hover {
+    background: #f8fbff;
+}
+
+/* ------------------------------------------------------------- */
+/* STATE column badges for the "Packet contents" table.         */
+/*                                                               */
+/* The badge colour codes whether the file in the row has been  */
+/* run through extraction yet. "OCR required" is the initial     */
+/* state for every file (templates + user uploads). It flips to  */
+/* "Searchable" the first time the user clicks Run and stays     */
+/* there until the user hits Clear (which resets every row back */
+/* to "OCR required").                                           */
+/* ------------------------------------------------------------- */
+.packet-state-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    line-height: 1;
+    white-space: nowrap;
+    border: 1px solid transparent;
+}
+
+.packet-state-badge::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: 0.85;
+    flex-shrink: 0;
+}
+
+.packet-state-badge--ocr {
+    color: #b45309;
+    background: #fff7ed;
+    border-color: #fed7aa;
+}
+
+.packet-state-badge--searchable {
+    color: #047857;
+    background: #ecfdf5;
+    border-color: #a7f3d0;
+}
+
+.primary-btn, .secondary-btn {
+    border: 0;
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    font-weight: 700;
+}
+/* Workflow stepper */
+.workflow-step { cursor: pointer; }
+.workflow-step:focus { outline: 2px solid rgba(59,130,246,0.18); outline-offset: 2px; }
+.workflow-count { color: #6b7280; font-weight: 600; margin-left: 12px; }
+.primary-btn {
+    background: #2b76ff;
+    color: #fff;
+}
+
+    .primary-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+.secondary-btn {
+    background: #edf2f7;
+    color: #243149;
+}
+
+.viewer-wrap {
+    min-height: 0;
+    position: relative;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid #dfe5ee;
+    background: #fff;
+}
+
+.review-table-wrap {
+    width: 100%;
+    flex: 1 1 auto;
+    max-height: min(54vh, 620px);
+    min-height: 220px;
+    overflow: auto;
+    border-radius: 16px;
+    border: 1px solid #dfe5ee;
+    background: #fff;
+    box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.08);
+}
+
+.review-center-stack {
+    width: 100%;
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.review-fixed-panel {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.review-section-title {
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #64748b;
+}
+
+.review-table-section {
+    height: clamp(220px, 30vh, 320px);
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    overflow: auto;
+    padding-right: 2px;
+}
+
+.table-card {
+    border: 1px solid #dfe5ee;
+    border-radius: 16px;
+    background: #fff;
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.03);
+}
+
+.table-card-header {
+    padding: 12px 16px;
+    background: #f7f9fc;
+    color: #64748b;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    border-bottom: 1px solid #e5ebf3;
+}
+
+.table-card-body {
+    padding: 14px 16px 16px;
+    overflow-y: auto;
+    max-height: 30vh;
+}
+
+.table-block {
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #edf2f7;
+}
+
+    .table-block:last-child {
+        margin-bottom: 0;
+        padding-bottom: 0;
+        border-bottom: none;
+    }
+
+.table-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #526b8f;
+    margin-bottom: 10px;
+}
+
+.review-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+    .review-table thead th {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        text-align: left;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #65748b;
+        padding: 14px 16px;
+        background: #f7f9fc;
+        border-bottom: 1px solid #e5ebf3;
+    }
+
+    .review-table tbody td {
+        padding: 12px 16px;
+        border-bottom: 1px solid #edf2f7;
+        vertical-align: middle;
+        white-space: normal;
+        overflow: visible;
+        text-overflow: clip;
+        word-break: break-word;
+        line-height: 1.45;
+    }
+
+        .review-table tbody td:nth-child(1) {
+            width: 28%;
+            font-weight: 700;
+        }
+
+        .review-table tbody td:nth-child(2) {
+            width: 34%;
+            color: #1f2937;
+        }
+
+        .review-table tbody td:nth-child(3) {
+            width: 12%;
+        }
+
+        .review-table tbody td:nth-child(4) {
+            width: 22%;
+            white-space: normal;
+        }
+
+        /* When EVERY review row is an unpaired-text row we drop
+           the Field column entirely (the <colgroup> + the per-row
+           @if blocks render only the value / confidence / action
+           cells). The default nth-child widths above assume 4
+           columns, so rebalance the no-field variant here. */
+        .review-table.review-table--no-field tbody td:nth-child(1) {
+            width: 60%;
+            font-weight: 400;
+            color: #1f2937;
+        }
+
+        .review-table.review-table--no-field tbody td:nth-child(2) {
+            width: 16%;
+        }
+
+        .review-table.review-table--no-field tbody td:nth-child(3) {
+            width: 24%;
+            white-space: normal;
+        }
+
+.edit-value-input {
+    width: 100%;
+    padding: 4px 8px;
+    border: 2px solid #6d28d9;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.display-value {
+    display: inline-block;
+}
+
+.nested-review-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    background: #fff;
+    border: 1px solid #dfe5ee;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+    .nested-review-table thead th {
+        background: #f2f6fc;
+        padding: 8px 10px;
+        font-size: 11px;
+        letter-spacing: 0.06em;
+        border-bottom: 1px solid #dfe5ee;
+        text-align: left;
+    }
+
+    .nested-review-table tbody td {
+        padding: 8px 10px;
+        border-bottom: 1px solid #edf2f7;
+        white-space: normal;
+        overflow: visible;
+        text-overflow: clip;
+    }
+
+    .nested-review-table tbody tr:last-child td {
+        border-bottom: 0;
+    }
+
+.table-caption {
+    display: block;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: #64748b;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+}
+
+.review-table tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+.review-table tbody tr.low-confidence {
+    /* No row-level background; only the confidence badge is highlighted. */
+    background: transparent;
+    box-shadow: none;
+}
+
+/* Rows whose extracted text did not contain a "Field : Value"
+   colon pair. The Field column is collapsed in the UI; the row
+   gets a soft left accent so the user can tell at a glance that
+   these rows are surfaced from raw extracted text (not from a
+   structured key/value pair). */
+.review-table tbody tr.unpaired-text td:first-child,
+.review-table.review-table--no-field tbody tr.unpaired-text td:first-child {
+    border-left: 3px solid #94a3b8;
+}
+
+.review-table tbody tr.unpaired-text {
+    background: #fafbfc;
+}
+
+.confidence-badge {
+    min-width: 48px;
+    height: 28px;
+    padding: 0 10px;
+    font-size: 12px;
+    border-radius: 6px;
+    font-weight: 600;
+}
+
+/* Centered variant for the Redact page only. The Redact
+   panel renders the confidence badge inside .redaction-item-top
+   (a flex row), where the default left-padded badge looks
+   hugged to the left. Scoping to .redaction-panel keeps the
+   Review page's review-table badge untouched. */
+.redaction-panel .confidence-badge {
+    padding: 0 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    font-variant-numeric: tabular-nums;
+}
+
+    .confidence-badge.ok {
+        background: #e8f8ea;
+        color: #15803d;
+        border: 1px solid #6b987b;
+    }
+
+    .confidence-badge.warn {
+        background: #fde2e2;
+        color: #b91c1c;
+        border: 1px solid #fca5a5;
+    }
+
+.row-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 6px;
+    flex-wrap: nowrap;
+}
+
+.action-btn {
+    border: 1px solid #dfe5ee;
+    background: #fff;
+    color: #243149;
+    border-radius: 8px;
+    cursor: pointer;
+    padding: 7px 12px;
+    font-size: 12px;
+    min-width: 64px;
+    transition: all 0.15s ease;
+}
+
+    .action-btn:hover {
+        background: #f8fafc;
+        border-color: #cfe0ff;
+    }
+
+.review-table tbody tr:hover {
+    background: #f8fafc;
+}
+
+.viewer-placeholder {
+    height: 100%;
+    min-height: 0;
+    display: grid;
+    place-items: center;
+    text-align: center;
+    padding: 24px;
+    border-radius: 16px;
+    background: #fff;
+    border: 1px solid #dfe5ee;
+    color: #5f6f88;
+}
+
+    .viewer-placeholder h2 {
+        color: #0f172a;
+    }
+
+.redaction-panel {
+    height: 100%;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    overflow: hidden;
+}
+
+.redaction-list {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    display: grid;
+    gap: 10px;
+    padding-right: 2px;
+}
+
+.redaction-item {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 12px 14px;
+    border: 1px solid #dfe5ee;
+    border-radius: 14px;
+    background: #fff;
+    cursor: pointer;
+}
+
+    .redaction-item input {
+        margin-top: 4px;
+        width: 16px;
+        height: 16px;
+        accent-color: #2b76ff;
+        flex: none;
+    }
+
+.redaction-item-main {
+    flex: 1;
+    min-width: 0;
+}
+
+.redaction-item-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 6px;
+}
+
+.redaction-item-value {
+    color: #243149;
+    font-weight: 500;
+    word-break: break-word;
+}
+
+.review-table-wrap {
+    border-radius: 16px;
+    overflow-y: auto;
+    background: #fff;
+}
+
+.final-panel {
+    min-height: 0;
+    display: grid;
+    grid-template-rows: auto 1fr;
+    gap: 14px;
+}
+
+.final-download-grid {
+    min-height: 0;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.final-download-card {
+    border: 1px solid #dfe5ee;
+    border-radius: 18px;
+    background: #fff;
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.04);
+    align-items: stretch;
+}
+
+    .final-download-card h3 {
+        margin: 0;
+        font-size: 18px;
+        color: #0f172a;
+    }
+
+    .final-download-card p {
+        margin: 0;
+        color: #475569;
+        line-height: 1.5;
+        flex: 1 1 auto;
+    }
+
+    .final-download-card a.primary-btn,
+    .final-download-card .primary-btn,
+    .final-download-card .secondary-btn {
+        align-self: center;
+        text-align: center;
+        text-decoration: none;
+        padding: 0.4rem 0.75rem;
+        font-size: 0.85rem;
+        font-weight: 600;
+        border-radius: 8px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: auto;
+    }
+
+    .final-download-card a.primary-btn:hover,
+    .final-download-card a.primary-btn:focus {
+        text-decoration: none;
+    }
+
+    .final-download-actions {
+        display: inline-flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 4px;
+    }
+
+    .final-download-card .secondary-btn {
+        background: #eef2f7;
+        color: #0f172a;
+        border: 1px solid #dfe5ee;
+    }
+
+    .final-download-card .secondary-btn:hover,
+    .final-download-card .secondary-btn:focus {
+        background: #e2e8f0;
+        text-decoration: none;
+    }
+
+/* =============== PDF PREVIEW MODAL =============== */
+/* Page-scoped modal that hosts a Syncfusion PDF Viewer for
+   the Searchable / Redacted previews on the Final step.
+   The viewer mounts into #pdfPreviewHost on open and is
+   destroyed on close so the EJ2 controls do not leak. */
+.pdf-preview-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: none;
+    align-items: stretch;
+    justify-content: stretch;
+}
+
+    .pdf-preview-modal.is-open {
+        display: flex;
+    }
+
+.pdf-preview-modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.55);
+    backdrop-filter: blur(2px);
+}
+
+.pdf-preview-modal-shell {
+    position: relative;
+    margin: 32px auto;
+    width: min(1180px, calc(100vw - 48px));
+    height: calc(100vh - 64px);
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 24px 60px rgba(15, 23, 42, 0.35);
+    display: grid;
+    grid-template-rows: auto 1fr;
+    overflow: hidden;
+}
+
+.pdf-preview-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px;
+    border-bottom: 1px solid #e5e7eb;
+    background: #f8fafc;
+}
+
+.pdf-preview-modal-title {
+    margin: 0;
+    font-size: 18px;
+    color: #0f172a;
+}
+
+.pdf-preview-modal-close {
+    background: transparent;
+    border: 0;
+    font-size: 28px;
+    line-height: 1;
+    color: #475569;
+    cursor: pointer;
+    padding: 4px 10px;
+    border-radius: 8px;
+}
+
+    .pdf-preview-modal-close:hover,
+    .pdf-preview-modal-close:focus {
+        background: #e2e8f0;
+        color: #0f172a;
+        outline: none;
+    }
+
+.pdf-preview-modal-body {
+    min-height: 0;
+    padding: 16px;
+    display: flex;
+}
+
+    .pdf-preview-modal-body .viewer-wrap {
+        flex: 1 1 auto;
+        min-height: 0;
+    }
+
+    .review-table thead th {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+    }
+
+    .review-footer {
+        margin-top: 24px;
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    .redact-confirmation {
+        position: static;
+        left: auto;
+        bottom: auto;
+        transform: none;
+        z-index: auto;
+        margin-top: 0;
+        padding: 12px 16px;
+        background: #dff0d8;
+        border: 1px solid #88c97d;
+        border-radius: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        width: 100%;
+        max-width: none;
+        box-sizing: border-box;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+    }
+
+    .confirmation-text {
+        font-size: 13px;
+        line-height: 1.3;
+        color: #1f2937;
+        margin: 0;
+    }
+    .review-required-box {
+        position: static;
+        left: auto;
+        bottom: auto;
+        transform: none;
+        z-index: auto;
+        margin-top: auto;
+        padding: 12px 16px;
+        border-radius: 10px;
+        border: 1px solid #f0c14b;
+        background: #fff8e5;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        width: 100%;
+        max-width: none;
+        box-sizing: border-box;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+        flex: 0 0 auto;
+    }
+
+    .review-required-title {
+        font-size: 12px;
+        font-weight: 600;
+        color: #1d4ed8;
+        text-transform: uppercase;
+        line-height: 1.2;
+        margin: 0;
+    }
+
+    .review-required-text {
+        margin-top: 2px;
+        color: #374151;
+        font-size: 13px;
+        font-weight: 400;
+        line-height: 1.3;
+    }
+
+    .review-required-box .primary-btn,
+    .redact-confirmation .primary-btn {
+        padding: 0.4rem 0.85rem;
+        font-size: 13px;
+        font-weight: 600;
+        line-height: 1.2;
+        min-height: 32px;
+        height: 32px;
+        border-radius: 6px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .review-center-stack > .redact-confirmation,
+    .review-center-stack > .review-required-box,
+    .redaction-panel > .redact-confirmation,
+    .redaction-panel > .review-required-box {
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+        margin: 0;
+        margin-top: auto;
+        flex: 0 0 auto;
+    }
+
+/* =========================================================
+   CLAIM INTAKE WORKFLOW STEPPER - COMPACT
+   ========================================================= */
+
+.claim-workflow-wrap {
+    width: 100%;
+    margin: 2px 0 4px 0;
+    display: block;
+    padding: 0 14px;
+    box-sizing: border-box;
+}
+
+.claim-workflow {
+    width: 100%;
+    display: block;
+    box-sizing: border-box;
+}
+
+
+/* =========================================================
+   STEP
+   ========================================================= */
+
+.workflow-step {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+    color: #687385;
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1;
+    /* min-width: 0 lets the step shrink on narrow viewports so the
+       stepper never overflows its wrap. */
+    flex: 0 0 auto;
+    min-width: 0;
+}
+
+
+/* =========================================================
+   CIRCLE
+   ========================================================= */
+
+.workflow-circle {
+    width: 24px;
+    height: 24px;
+    min-width: 24px;
+    max-width: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f1f3f5;
+    border: 1px solid #d5d9df;
+    color: #687385;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1;
+    box-sizing: border-box;
+}
+
+
+/* =========================================================
+   ACTIVE STEP
+   ========================================================= */
+
+.workflow-step.active {
+    color: #075dcc;
+    font-weight: 600;
+}
+
+    .workflow-step.active .workflow-circle {
+        width: 24px;
+        height: 24px;
+        background: #0d6efd;
+        border-color: #0d6efd;
+        color: #ffffff;
+    }
+
+
+/* =========================================================
+   COMPLETED STEP
+   ========================================================= */
+
+.workflow-step.completed {
+    color: #111827;
+}
+
+    .workflow-step.completed .workflow-circle {
+        background: #65a843;
+        border-color: #65a843;
+        color: #ffffff;
+    }
+
+
+/* =========================================================
+   CONNECTING LINE
+   ========================================================= */
+
+.workflow-line {
+    height: 1px;
+    /* The connector line must NOT grow to fill available space -
+       doing so pushes the steps apart and prevents the stepper
+       from staying left-aligned with the count on the right. Use
+       a fixed width with a small min-width so it can still
+       compress on very narrow viewports. */
+    flex: 0 1 48px;
+    width: 48px;
+    max-width: 48px;
+    min-width: 0;
+    margin: 0 8px;
+    background: #d9dde3;
+}
+
+    .workflow-line.completed {
+        background: #65a843;
+    }
+
+
+/* =========================================================
+   STEP COUNTER
+   ========================================================= */
+
+.workflow-count {
+    margin-left: auto;
+    padding: 0 4px 0 12px;
+    white-space: nowrap;
+    font-size: 12px;
+    line-height: 1;
+    color: #64748b;
+    flex: 0 0 auto;
+}
+
+.workflow-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.workflow-actions .primary-btn,
+.workflow-actions .secondary-btn {
+    padding: 0.5rem 0.9rem;
+    border-radius: 10px;
+}
+
+/* =========================================================
+   RUN BUTTON - "RUNNING" ATTENTION STATE
+   =========================================================
+   Mirrors the live-editor / examples-page "Run" button:
+   blue fill + 1.05 scale + 3-iteration pulse-glow animation
+   that plays while extraction is in progress. */
+
+#runBtn.running,
+#runBtn.running:disabled {
+    background: #0057ff !important;
+    border-color: #0057ff !important;
+    color: #ffffff !important;
+    opacity: 1 !important;
+    box-shadow: 0 4px 12px rgba(0, 87, 255, 0.35);
+    transform: scale(1.05);
+    animation: runBtnPop 0.35s ease-out,
+        run-pulse-glow 1.4s ease-out 0.35s 3;
+}
+
+@keyframes runBtnPop {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 rgba(0, 87, 255, 0);
+    }
+
+    60% {
+        transform: scale(1.08);
+        box-shadow: 0 0 0 8px rgba(0, 87, 255, 0);
+    }
+
+    100% {
+        transform: scale(1.05);
+        box-shadow: 0 4px 12px rgba(0, 87, 255, 0.35);
+    }
+}
+
+@keyframes run-pulse-glow {
+    0% {
+        box-shadow: 0 4px 12px rgba(0, 87, 255, 0.35),
+            0 0 0 0 rgba(0, 87, 255, 0.6);
+    }
+
+    70% {
+        box-shadow: 0 4px 12px rgba(0, 87, 255, 0.35),
+            0 0 0 14px rgba(0, 87, 255, 0);
+    }
+
+    100% {
+        box-shadow: 0 4px 12px rgba(0, 87, 255, 0.35),
+            0 0 0 0 rgba(0, 87, 255, 0);
+    }
+}
+
+
+/* =========================================================
+   PREVENT WORKFLOW FROM CREATING PAGE SCROLL
+   ========================================================= */
+
+.claim-workflow,
+.claim-workflow * {
+    box-sizing: border-box;
+}
+
+.claim-workflow {
+    overflow: visible;
+    width: 100%;
+    max-width: 100%;
+}
+
+/* Inner container spans full width inside the padded wrapper */
+.claim-workflow-inner {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    background: #ffffff;
+    border-radius: 18px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 8px 16px rgba(15,23,42,0.04);
+    box-sizing: border-box;
+}
+
+.workflow-steps {
+    /* Allow the steps row to shrink/grow with the viewport so the
+       workflow wrap never gets cropped. The previous fixed 68% width
+       caused the wrap to overflow on narrow windows. min-width:0
+       lets flex children (steps + count) actually shrink instead of
+       pushing the container past its parent. */
+    flex: 1 1 auto;
+    max-width: 100%;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    overflow: hidden;
+}
+
+/* workflow-count lives at the end of .workflow-steps. Push it to the
+   far right of the steps row so it sits flush against the right
+   edge of the workflow wrap (just before .workflow-actions). The
+   previous rule only added a left margin, which left the count
+   floating in the middle of the stepper. */
+.workflow-steps .workflow-count {
+    margin-left: auto;
+    padding: 0 4px 0 12px;
+}
+
+/* Place workflow action buttons at the right inside the inner workflow strip */
+.claim-workflow-inner .workflow-actions {
+    margin-left: auto;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex: 0 0 auto;
+}
+
+/* Responsive adjustments: stack/compact on narrow viewports */
+@media (max-width: 900px) {
+    .claim-workflow-inner {
+        padding: 8px 12px;
+        border-radius: 10px; /* restore rounded corners on small screens */
+    }
+
+    .workflow-steps {
+        max-width: none;
+        flex: 1 1 100%;
+    }
+
+    /* The count keeps margin-left: auto at every breakpoint
+       so it always stays pinned to the right side of the
+       workflow wrap. Only the left padding is trimmed to
+       give the steps a bit more room on tablets. */
+    .workflow-steps .workflow-count {
+        padding: 0 0 0 8px;
+    }
+
+    .claim-workflow-inner .workflow-actions {
+        position: static;
+        margin-left: 12px;
+    }
+}
+
+/* Very narrow viewports: drop the step labels and tighten
+   the gaps so the stepper always fits inside the wrap.
+   Without this the 6 long labels would push the row past
+   the wrap on a 320px phone. */
+@media (max-width: 560px) {
+    .claim-workflow-wrap {
+        padding: 0 8px;
+    }
+
+    .claim-workflow-inner {
+        padding: 6px 8px;
+        gap: 4px;
+    }
+
+    .workflow-steps {
+        gap: 4px;
+    }
+
+    .workflow-step span {
+        /* Keep the numeric/checkmark circles; drop the
+           long labels (Choose, View, Extract, ...). */
+        display: none;
+    }
+
+    .workflow-line {
+        margin: 0 2px;
+    }
+
+    .workflow-steps .workflow-count {
+        margin-left: auto;
+        padding: 0 0 0 6px;
+    }
+}
+
+
+/* Prevent horizontal page overflow. The vertical axis
+   never scrolls - the demo page is rendered as a single
+   viewport-sized surface and any content that overflows
+   is expected to surface its own scrollbar. */
+html,
+body {
+    min-height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+body {
+    overflow: hidden;
+}
+
+
+/* =========================================================
+   Smart Document Extraction Solutions HEADER BAR
+   =========================================================
+   Sits above the workflow stepper and remains visible on
+   every step of the demo. The brand sits on the left; the
+   "Reset" action is pinned to the right edge so it is
+   always one click away. Reset wipes the entire workflow
+   (the active file, every per-document progress entry, the
+   generated PDFs) and returns the user to the Choose step.
+*/
+.smart-doc-header-wrap {
+    width: 100%;
+    margin: 0;
+    padding: 10px 14px 4px 14px;
+    box-sizing: border-box;
+    background: transparent;
+}
+
+.smart-doc-header {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 18px;
+    background: linear-gradient(135deg, #0f172a 0%, #1d4ed8 100%);
+    border-radius: 14px;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+    color: #ffffff;
+    box-sizing: border-box;
+}
+
+.smart-doc-header-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    flex: 1 1 auto;
+}
+
+.smart-doc-header-glyph {
+    display: inline-block;
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+    background: #ffffff;
+    object-fit: contain;
+    padding: 3px;
+    box-sizing: border-box;
+    flex-shrink: 0;
+}
+
+.smart-doc-header-title {
+    font-size: 16px;
+    font-weight: 800;
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: #ffffff;
+}
+
+.smart-doc-header-divider {
+    opacity: 0.4;
+    font-weight: 300;
+    font-size: 18px;
+    line-height: 1;
+    flex-shrink: 0;
+}
+
+.smart-doc-header-subtitle {
+    font-size: 13px;
+    font-weight: 500;
+    color: rgba(226, 232, 240, 0.86);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.smart-doc-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 0 0 auto;
+}
+
+.smart-doc-header-reset {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.18);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.32);
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.2;
+    cursor: pointer;
+    transition: background 0.15s ease, transform 0.12s ease, box-shadow 0.15s ease;
+}
+
+.smart-doc-header-reset:hover {
+    background: rgba(255, 255, 255, 0.26);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 14px rgba(15, 23, 42, 0.18);
+}
+
+.smart-doc-header-reset:focus {
+    outline: 2px solid rgba(255, 255, 255, 0.5);
+    outline-offset: 2px;
+}
+
+.smart-doc-header-reset:disabled {
+    opacity: 0.7;
+    cursor: progress;
+    transform: none;
+}
+
+.smart-doc-header-reset-glyph {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    font-size: 16px;
+    line-height: 1;
+}
+
+/* Home link in the workflow header.
+   Visual twin of .smart-doc-header-reset so the two header
+   buttons match; the markup is an <a> instead of a <button>
+   so we also need to undo the anchor's underline / colour
+   defaults (see layout base styles in this file). */
+.smart-doc-header-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.18);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.32);
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.2;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 0.15s ease, transform 0.12s ease, box-shadow 0.15s ease;
+}
+
+.smart-doc-header-back:hover {
+    background: rgba(255, 255, 255, 0.26);
+    color: #ffffff;
+    text-decoration: none;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 14px rgba(15, 23, 42, 0.18);
+}
+
+.smart-doc-header-back:focus {
+    outline: 2px solid rgba(255, 255, 255, 0.5);
+    outline-offset: 2px;
+    color: #ffffff;
+    text-decoration: none;
+}
+
+@media (max-width: 720px) {
+    .smart-doc-header {
+        padding: 10px 12px;
+        border-radius: 10px;
+    }
+    .smart-doc-header-subtitle {
+        display: none;
+    }
+    .smart-doc-header-divider {
+        display: none;
+    }
+}
+
+
+/* =========================================================
+   WORKFLOW STEP - CLICKABLE / DISABLED STATES
+   =========================================================
+   A step is "clickable" once the active document has
+   reached it. When it is not clickable the cursor reverts
+   to default and the step is no longer a focusable
+   button-style element. The CSS overrides the prior
+   behaviour (where every step was a button) so the
+   top bar correctly reflects where the user actually
+   is in the workflow.
+*/
+.workflow-step.clickable {
+    cursor: pointer;
+}
+
+.workflow-step.clickable:hover .workflow-circle {
+    box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.18);
+}
+
+.workflow-step.clickable:hover {
+    color: #0f172a;
+}
+
+.workflow-step.disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+}
+
+.workflow-step.disabled .workflow-circle {
+    background: #f1f3f5;
+    border-color: #d5d9df;
+    color: #687385;
+}
+
+.workflow-step.disabled:hover {
+    color: inherit;
+}
+
+
+/* =========================================================
+   Smart Document Extraction Solutions HEADER - CONTEXT (in-line)
+   =========================================================
+   Inline context line in the header: "Claims intake · <active
+   file>". Shown on the same row as the brand so the user can
+   always tell which document the top bar / stepper reflects.
+*/
+.smart-doc-header-context {
+    font-size: 13px;
+    font-weight: 500;
+    color: rgba(226, 232, 240, 0.86);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+    flex: 0 1 auto;
+}
+
+@media (max-width: 980px) {
+    .smart-doc-header-context {
+        max-width: 260px;
+    }
+}
+
+@media (max-width: 720px) {
+    .smart-doc-header-context {
+        max-width: 140px;
+    }
+}
+
+
+/* =========================================================
+   PACKET SIDEBAR LIST
+   =========================================================
+   The left sidebar now hosts the file picker ("PACKET")
+   above the review modes. Each entry shows the file's
+   type glyph, name, type, page count, and current state.
+   The active document is highlighted so the user can see
+   at a glance which file the top workflow bar reflects.
+*/
+.packet-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-height: 0;
+}
+
+.packet-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.packet-panel-header .add-files-link {
+    font-size: 12px;
+    color: #1d4ed8;
+    font-weight: 600;
+}
+
+/* The "Add files" link is only meaningful on the
+   Workspace home (Choose) step. On every other step
+   it is disabled so the user cannot upload a new file
+   mid-workflow and orphan the active document's
+   progress. The visual treatment mirrors the locked
+   packet entries so the affordance reads as the same
+   "return to Choose" pattern. */
+.packet-panel-header .add-files-link.is-locked,
+.packet-panel-header .add-files-link:disabled,
+.packet-panel-header .add-files-link[aria-disabled="true"] {
+    color: #94a3b8;
+    cursor: not-allowed;
+    opacity: 0.7;
+    text-decoration: none;
+    pointer-events: none;
+}
+
+.packet-panel-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-height: 0;
+    overflow: visible;
+    padding: 2px 0;
+}
+
+.packet-panel-empty {
+    padding: 14px 10px;
+    border: 1px dashed #dfe5ee;
+    border-radius: 10px;
+    background: #fbfdff;
+    color: #5f6f88;
+    font-size: 12px;
+    line-height: 1.4;
+    text-align: center;
+}
+
+.packet-panel-item {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid #e5ebf3;
+    border-radius: 10px;
+    background: #fff;
+    color: #1f2937;
+    cursor: pointer;
+    text-align: left;
+    font: inherit;
+    transition: background 0.15s ease, border-color 0.15s ease, transform 0.12s ease, box-shadow 0.15s ease;
+}
+
+.packet-panel-item:hover:not(:disabled) {
+    background: #f8fbff;
+    border-color: #d9e7ff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
+}
+
+.packet-panel-item:disabled,
+.packet-panel-item.is-locked,
+.packet-panel-item[aria-disabled="true"] {
+    cursor: not-allowed;
+    opacity: 0.55;
+    transform: none;
+    box-shadow: none;
+}
+
+.packet-panel-item:disabled:not(.is-locked) {
+    /* In-flight "selectTemplate is running" disable
+       keeps the progress cursor so the user can see
+       something is happening. */
+    cursor: progress;
+}
+
+.packet-panel-item:disabled:hover,
+.packet-panel-item.is-locked:hover,
+.packet-panel-item[aria-disabled="true"]:hover {
+    background: #fff;
+    border-color: #e5ebf3;
+    transform: none;
+    box-shadow: none;
+}
+
+.packet-panel-item.is-active {
+    background: #edf4ff;
+    border-color: #2b76ff;
+    box-shadow: inset 0 0 0 1px rgba(43, 118, 255, 0.18);
+}
+
+.packet-panel-item-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 7px;
+    background: linear-gradient(180deg, #f6faff 0%, #edf4ff 100%);
+    color: #1d4ed8;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    flex-shrink: 0;
+    border: 1px solid #d9e7ff;
+}
+
+.packet-panel-item.is-active .packet-panel-item-icon {
+    background: #2b76ff;
+    color: #ffffff;
+    border-color: #2b76ff;
+}
+
+.packet-panel-item-body {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+    flex: 1 1 auto;
+}
+
+.packet-panel-item-name {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: #0f172a;
+    line-height: 1.3;
+    word-break: break-word;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.packet-panel-item-meta {
+    font-size: 11px;
+    line-height: 1.3;
+    color: #6b7280;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0;
+}
+
+.packet-panel-item-type {
+    font-weight: 600;
+    color: #475569;
+}
+
+.packet-panel-item-state {
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    font-size: 10.5px;
+}
+
+.packet-panel-item-state.is-searchable {
+    color: #047857;
+}
+
+.packet-panel-item-state.is-ocr {
+    color: #b45309;
+}
+
+
+/* =========================================================
+   CHOOSE PANEL - SINGLE COLUMN
+   =========================================================
+   The Choose view stacks the scenario panel on top of the
+   packet contents table. The scenario panel renders at its
+   natural height; the packet contents card fills the
+   remaining vertical space and scrolls internally so the
+   rest of the workspace stays static.
+*/
+.choose-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    min-height: 0;
+    height: 100%;
+    overflow: hidden;
+}
+
+.choose-scenario-panel {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+    padding: 16px 20px;
+    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.03);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-width: 0;
+    flex: 0 0 auto;
+}
+
+.choose-scenario-panel h1 {
+    font-size: 20px;
+    line-height: 1.2;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    color: #0f172a;
+    margin: 0;
+}
+
+.choose-scenario-body {
+    margin: 0;
+    font-size: 13.5px;
+    line-height: 1.5;
+    color: #46556d;
+    /* max-width: 100ch; */
+}
+
+.choose-scenario-cta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 2px;
+}
+
+.choose-scenario-cta-btn {
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.choose-scenario-cta-btn[aria-disabled="true"] {
+    background: #cbd5e1;
+    color: #475569;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.choose-scenario-hint {
+    font-size: 12px;
+    color: #6b7280;
+    line-height: 1.4;
+}
+
+
+/* =========================================================
+   PACKET CONTENTS - SCROLLABLE TABLE
+   =========================================================
+   The packet-contents table scrolls inside its card when
+   the rows exceed the available height, keeping overflow
+   content visible without clipping the page.
+*/
+.packet-contents-panel {
+    margin: 0;
+    border: 1px solid #dfeaf8;
+    border-radius: 16px;
+    background: #fff;
+    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.02);
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+    flex: 1 1 auto;
+}
+
+.packet-contents-title {
+    padding: 12px 16px 10px;
+    font-size: 1rem;
+    font-weight: 800;
+    line-height: 1.2;
+    color: #0f172a;
+    text-transform: none;
+    background: transparent;
+    border-bottom: 1px solid #edf3ff;
+    flex-shrink: 0;
+}
+
+.packet-contents-scroll {
+    overflow: auto;
+    max-height: 100%;
+    min-height: 0;
+    background: #fff;
+    flex: 1 1 auto;
+}
+
+.packet-contents-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+    background: #fff;
+}
+
+.packet-contents-table th,
+.packet-contents-table td {
+    padding: 7px 12px;
+    text-align: left;
+    border-bottom: 1px solid #edf3ff;
+    font-size: 0.82rem;
+    color: #1f2937;
+    word-break: break-word;
+    vertical-align: middle;
+    line-height: 1.3;
+}
+
+.packet-contents-table th {
+    position: static;
+    background: #f4f8ff;
+    color: #475569;
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    padding: 10px 12px;
+}
+
+.packet-contents-table td:nth-child(1) {
+    width: 36%;
+}
+
+.packet-contents-table td:nth-child(2),
+.packet-contents-table th:nth-child(2) {
+    width: 12%;
+}
+
+.packet-contents-table td:nth-child(3),
+.packet-contents-table th:nth-child(3) {
+    width: 8%;
+}
+
+.packet-contents-table td:nth-child(4),
+.packet-contents-table th:nth-child(4) {
+    width: 12%;
+}
+
+.packet-contents-table td:nth-child(5),
+.packet-contents-table th:nth-child(5) {
+    width: 14%;
+}
+
+.packet-contents-table td:nth-child(6),
+.packet-contents-table th:nth-child(6) {
+    width: 18%;
+}
+
+.packet-contents-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.packet-contents-table tbody tr:hover {
+    background: #f8fbff;
+}
+
+
+/* =========================================================
+   PACKET PROGRESS STEPS
+   =========================================================
+   Per-file 6-step progress chips rendered in the Packet
+   contents table. Each chip represents one workflow
+   step (Choose, View, Extract, Review, Redact, Final)
+   for that specific file. The chips stay in sync with
+   the per-document progress on the server.
+*/
+.packet-progress-steps {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.packet-progress-chip {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+    background: #e2e8f0;
+    border: 1px solid #cbd5e1;
+    flex-shrink: 0;
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.packet-progress-chip.is-done {
+    background: #10b981;
+    border-color: #059669;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.4);
+}
+
+.packet-progress-chip.is-empty {
+    background: #e2e8f0;
+    border-color: #cbd5e1;
+}
+
+
+/* =========================================================
+   SIDEBAR LAYOUT - PACKET + REVIEW MODES
+   =========================================================
+   The upload-left panel now hosts two stacked sections:
+   the file picker and the review-mode shortcuts. Each
+   one is independently scrollable so the rest of the
+   sidebar is not affected by long packet lists.
+*/
+.upload-left {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    min-height: 0;
+}
+
+.upload-left .packet-panel {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: auto;
+}
+
+.upload-left .review-mode-panel {
+    flex: 0 0 auto;
+}
+

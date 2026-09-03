@@ -1,0 +1,2078 @@
+/* ============================================================================
+   board-pack.css
+
+   Board Pack demo stylesheet. Reuses the enterprise workspace
+   layout classes first defined for the Claim Intake demo
+   (smart-doc-header, workflow-steps, upload-shell,
+   packet-panel-list, ...) so both demos stay visually
+   consistent.
+
+   Scope decisions:
+     * The original claim-intake.css already styles every
+       class shared by the two pages (the centre panel, the
+       stepper, the side panels, the modal). This file
+       INTENTIONALLY does not duplicate those rules.
+     * Anything the Board Pack UI needs that does not exist
+       yet (drag-and-drop reorder handles, board-pack
+       conversion status cards, watermark editor, password
+       protection panel, export dashboard cards) lives here
+       and is namespaced with `bp-` so future readers can
+       scan it without grepping against the shared classes.
+   ========================================================================== */
+
+/* ----------------------------------------------------------------
+   Upload dropzone
+   ---------------------------------------------------------------- */
+.upload-center #centre-panel[data-mode="upload"] {
+    gap: 12px;
+}
+
+.bp-upload-header {
+    display: flex;
+    align-items: center;
+    gap: clamp(24px, 4vw, 58px);
+    min-height: 174px;
+    padding: 24px 30px;
+    border: 1px solid #e3eaf5;
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
+    box-sizing: border-box;
+}
+
+.bp-upload-file-flow {
+    display: flex;
+    align-items: center;
+    flex: 0 0 auto;
+}
+
+.bp-upload-file-art {
+    display: block;
+    width: 260px;
+    height: 120px;
+    overflow: visible;
+}
+
+.bp-upload-header-copy {
+    min-width: 0;
+}
+
+.bp-upload-header-copy h1 {
+    margin: 0 0 6px;
+    color: #0f172a;
+    font-size: clamp(23px, 2.1vw, 30px);
+    line-height: 1.2;
+    font-weight: 700;
+}
+
+.bp-upload-header-copy p {
+    margin: 0 0 16px;
+    color: #475569;
+    font-size: 15px;
+}
+
+.bp-upload-cta {
+    padding: 11px 20px;
+    font-size: 14px;
+}
+
+.bp-upload-cta span {
+    margin-left: 8px;
+}
+
+.bp-upload-hint {
+    display: block;
+    max-width: 510px;
+    margin-top: 10px;
+    color: #64748b;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.bp-upload-header + .bp-upload-contents {
+    margin-top: 0;
+}
+
+.bp-upload-contents {
+    min-height: 230px;
+    border: 1px solid #e3eaf5;
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.035);
+    overflow: hidden;
+}
+
+.bp-upload-contents .packet-contents-title {
+    padding: 15px 18px 10px;
+    font-size: 16px;
+}
+
+.bp-upload-contents .packet-contents-table th {
+    background: #eef4ff;
+    color: #52627b;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+}
+
+.bp-upload-contents .packet-contents-table td {
+    color: #30405a;
+    font-size: 12px;
+}
+
+@media (max-width: 900px) {
+    .bp-upload-header { gap: 20px; padding: 20px; }
+    .bp-upload-file-art { width: 220px; height: auto; }
+}
+
+@media (max-width: 680px) {
+    .bp-upload-header { align-items: flex-start; flex-direction: column; }
+    .bp-upload-file-flow { align-self: center; }
+}
+
+.bp-dropzone-wrap {
+    border: 2px dashed #c1cee0;
+    border-radius: 16px;
+    background: linear-gradient(180deg, #f9fbff 0%, #eff4ff 100%);
+    padding: 22px 22px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.bp-dropzone-wrap.is-drag-over {
+    border-color: #2b76ff;
+    background: linear-gradient(180deg, #eaf2ff 0%, #d6e4ff 100%);
+}
+
+.bp-dropzone-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #0f172a;
+    letter-spacing: -0.01em;
+}
+
+.bp-dropzone-sub {
+    font-size: 13.5px;
+    color: #475569;
+    line-height: 1.5;
+    max-width: 520px;
+}
+
+.bp-dropzone-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.bp-supported-types {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 4px;
+}
+
+.bp-supported-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: #ffffff;
+    border: 1px solid #d6deeb;
+    color: #1d4ed8;
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: 0.02em;
+}
+
+/* ----------------------------------------------------------------
+   Packet panel document rows
+   ----------------------------------------------------------------
+   Reuses .packet-panel-list from claim-intake.css for layout,
+   so each row always renders inside the same scroll viewport.
+   ---------------------------------------------------------------- */
+.bp-packet-row {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    box-sizing: border-box;
+}
+
+.bp-packet-row-thumb {
+    width: 30px;
+    height: 30px;
+    border-radius: 7px;
+    flex-shrink: 0;
+}
+.bp-packet-row-thumb--word { background: #2b76ff; color: #ffffff; border-color: #2b76ff; }
+.bp-packet-row-thumb--excel { background: #eaf8ef; color: #15803d; border-color: #bbf7d0; }
+.bp-packet-row-thumb--ppt { background: #fff2e8; color: #c2410c; border-color: #fed7aa; }
+.bp-packet-row.is-converting { background: #fff7ed; border-color: #fed7aa; }
+.bp-packet-row.is-failed { background: #fef2f2; border-color: #fecaca; }
+
+.bp-packet-row-meta { min-width: 0; }
+.bp-packet-row-name {
+    flex: 1 1 auto;
+    text-align: left;
+}
+
+.bp-packet-row-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+.bp-packet-row-status::before {
+    content: "";
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: 0.85;
+}
+
+.bp-status-waiting { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
+.bp-status-converting { background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa; }
+.bp-status-converted { background: #e9f7ec; color: #13733e; border: 1px solid #bbf7d0; }
+.bp-status-failed { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+
+.bp-row-actions {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-left: auto;
+    margin-right: 4px;
+    flex-shrink: 0;
+}
+
+/* When Preview is suppressed on the Upload + Convert steps the
+   row only carries the Remove button - keep it visually
+   anchored so the packet list looks intentional rather than
+   ragged. */
+.bp-row-actions--minimal {
+    justify-content: flex-end;
+}
+
+.bp-packet-row-remove {
+    width: 30px;
+    height: 30px;
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #e5e7eb;
+    background: #ffffff;
+    color: #475569;
+    border-radius: 8px;
+    padding: 0;
+    line-height: 0;
+    cursor: pointer;
+    transition: background .15s ease, color .15s ease, border-color .15s ease;
+}
+.bp-packet-row-remove-icon {
+    width: 14px;
+    height: 14px;
+    display: block;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.35;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    pointer-events: none;
+}
+.bp-packet-row-remove:hover {
+    background: #fef2f2;
+    border-color: #fecaca;
+    color: #b91c1c;
+}
+
+.bp-packet-row-preview {
+    border: 1px solid #d5e2ff;
+    background: #ffffff;
+    color: #1d4ed8;
+    border-radius: 8px;
+    padding: 4px 8px;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+}
+.bp-packet-row-preview:hover { background: #eff4ff; }
+
+/* ----------------------------------------------------------------
+   Convert page: per-document status cards
+   ---------------------------------------------------------------- */
+.bp-convert-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+    grid-auto-rows: max-content;
+    gap: 12px;
+    margin-top: 16px;
+    min-width: 0;
+    /* Cap the grid height so extra cards scroll inside the panel
+       instead of stretching it past the viewport. The toolbar
+       stays pinned above the scroll area because it lives outside
+       this element. */
+    max-height: calc(100vh - 220px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 4px;
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 transparent;
+}
+
+.bp-convert-grid::-webkit-scrollbar {
+    width: 8px;
+}
+.bp-convert-grid::-webkit-scrollbar-track {
+    background: transparent;
+}
+.bp-convert-grid::-webkit-scrollbar-thumb {
+    background-color: #cbd5e1;
+    border-radius: 4px;
+}
+.bp-convert-grid::-webkit-scrollbar-thumb:hover {
+    background-color: #94a3b8;
+}
+
+.bp-convert-card {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 16px 16px 14px;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    background: #ffffff;
+    box-shadow: 0 6px 14px rgba(15, 23, 42, 0.04);
+    transition: border-color .15s ease, transform .15s ease;
+    min-width: 0;
+    box-sizing: border-box;
+}
+.bp-convert-card.is-converting { border-color: #f59e0b; }
+.bp-convert-card.is-converted { border-color: #16a34a; }
+.bp-convert-card.is-failed { border-color: #ef4444; }
+
+.bp-convert-card-head {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+.bp-convert-card-icon {
+    /* Auto width so the longer labels (Excel, PowerPoint) fit
+       comfortably; the min-* keeps the badge square for the
+       3-letter "Word" label. */
+    min-width: 44px;
+    height: 36px;
+    padding: 0 10px;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+    flex-shrink: 0;
+    box-sizing: border-box;
+}
+.bp-convert-card-icon--word { background: #1d4ed8; }
+.bp-convert-card-icon--excel { background: #15803d; }
+.bp-convert-card-icon--ppt { background: #c2410c; }
+
+.bp-convert-card-name {
+    font-weight: 700;
+    color: #0f172a;
+    font-size: 14.5px;
+    line-height: 1.3;
+    letter-spacing: -0.005em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: none;
+}
+
+.bp-convert-card-meta {
+    font-size: 12px;
+    color: #64748b;
+    min-width: 0;
+    line-height: 1.4;
+}
+
+.bp-convert-card-progress {
+    height: 6px;
+    background: #eef2f7;
+    border-radius: 999px;
+    overflow: hidden;
+    position: relative;
+}
+.bp-convert-card-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg,#2563eb,#60a5fa);
+    transition: width .4s ease;
+    border-radius: 999px;
+}
+.bp-convert-card-progress-fill.is-animating {
+    width: 45% !important;
+    animation: bp-progress-pulse 1.4s ease-in-out infinite;
+}
+@keyframes bp-progress-pulse {
+    0%   { width: 35%; opacity: 0.9; }
+    50%  { width: 65%; opacity: 1; }
+    100% { width: 35%; opacity: 0.9; }
+}
+.bp-convert-card-progress-fill.is-failed {
+    background: linear-gradient(90deg,#ef4444,#f87171);
+    animation: none;
+}
+.bp-convert-card.is-converted .bp-convert-card-progress-fill { background: linear-gradient(90deg,#16a34a,#22c55e); }
+.bp-convert-card.is-failed .bp-convert-card-progress-fill { background: linear-gradient(90deg,#ef4444,#f87171); animation: none; }
+
+.bp-convert-card-badge {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    padding: 2px 8px;
+    border-radius: 999px;
+    text-transform: uppercase;
+    white-space: nowrap;
+    flex-shrink: 0;
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    box-sizing: border-box;
+}
+
+@media (max-width: 840px) {
+    .bp-convert-card-head {
+        grid-template-columns: auto minmax(0, 1fr);
+    }
+
+    .bp-convert-card-badge {
+        grid-column: 2;
+        justify-self: start;
+    }
+}
+.bp-convert-card-type {
+    font-size: 12px;
+    color: #64748b;
+    line-height: 1.4;
+}
+
+.bp-status-waiting  { background: #f1f5f9; color: #64748b; }
+.bp-status-converting { background: #eff6ff; color: #2563eb; }
+.bp-status-converted { background: #f0fdf4; color: #15803d; }
+.bp-status-failed   { background: #fef2f2; color: #dc2626; }
+
+.bp-convert-card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    color: #475569;
+    font-weight: 500;
+}
+
+/* Preview button rendered inside each Convert card. The
+   wrapper is centred so the button sits visually below the
+   page-count footer regardless of card width, and the
+   secondary-btn base class keeps the look consistent with
+   the Claim-Intake / Export page preview buttons. */
+.bp-convert-card-preview-wrap {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 4px;
+}
+
+.bp-convert-card-preview {
+    min-width: 110px;
+    font-size: 12px;
+    padding: 6px 14px;
+}
+
+.bp-convert-card-preview:disabled {
+    background: #f8fafc;
+    color: #94a3b8;
+    border-color: #e2e8f0;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.bp-toolbar {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-top: 12px;
+}
+
+/* ----------------------------------------------------------------
+   Pack page: drag-and-drop merge order, bookmark / watermark editors
+   ---------------------------------------------------------------- */
+.upload-center .packet-contents-table th:nth-child(1),
+.upload-center .packet-contents-table td:nth-child(1) {
+    width: 52%;
+}
+.upload-center .packet-contents-table th:nth-child(2),
+.upload-center .packet-contents-table td:nth-child(2) {
+    width: 20%;
+}
+.upload-center .packet-contents-table th:nth-child(3),
+.upload-center .packet-contents-table td:nth-child(3) {
+    width: 12%;
+}
+.upload-center .packet-contents-table th:nth-child(4),
+.upload-center .packet-contents-table td:nth-child(4) {
+    width: 16%;
+}
+
+.bp-pack-grid {
+    display: grid;
+    grid-template-columns: minmax(0,1fr) 320px;
+    gap: 14px;
+    margin-top: 14px;
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+@media (max-width: 1200px) {
+    .bp-pack-grid { grid-template-columns: 1fr; }
+}
+
+/* ----------------------------------------------------------------
+   Sectioned Pack layout (enterprise look)
+   ----------------------------------------------------------------
+   The Pack step is split into three numbered sections
+   (Settings -> Merge order -> Bookmarks). Each section has a
+   consistent header (title + sub-line + optional pill on the
+   right) and a body card. The body card uses a uniform
+   neutral surface so the user is not distracted by a flash of
+   orange every time a toggle is off.
+   ---------------------------------------------------------------- */
+.bp-section {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    /* margin-top: 18px; */
+    /* padding-top: 14px;
+    border-top: 1px solid #eef2f7; */
+}
+.bp-section:first-of-type 
+{ border-top: 0;
+     padding-top: 0; 
+     /* margin-top: 12px;  */
+     gap: 8px; 
+    }
+.bp-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 2px 2px 0;
+}
+.bp-section-title {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 800;
+    color: #1d4ed8;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    /* The previous design used a 4x18px blue bar via
+       `::before` as the section accent. The reference
+       design replaces that bar with a small inline SVG
+       icon (sliders / arrows / bookmark) inside a
+       `.bp-section-title-icon` span. The icon is
+       supplied by board-pack.js renderPack() so each
+       section can have a meaningful glyph. The bar is
+       kept as a fallback for any third-party caller
+       that still emits a bare `.bp-section-title`
+       without an icon span. */
+}
+.bp-section-title::before {
+    content: "";
+    width: 4px;
+    height: 18px;
+    border-radius: 2px;
+    background: linear-gradient(180deg, #2563eb, #1d4ed8);
+    display: inline-block;
+}
+/* When the section title contains an inline icon span,
+   suppress the blue bar and let the icon act as the
+   visual anchor. The icon span is the first child of
+   the .bp-section-title in our markup, so the
+   `> .bp-section-title-icon:first-child` selector
+   hides the ::before bar only when the icon is
+   present. */
+.bp-section-title:has(> .bp-section-title-icon:first-child)::before {
+    display: none;
+}
+
+/* Icon container for the small inline glyph that
+   appears inside a section title. Sized to match the
+   13px uppercase label so the icon and the text
+   read as a single block. */
+.bp-section-title-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    color: #1d4ed8;
+    flex-shrink: 0;
+    background: #eff4ff;
+    border: 1px solid #c7d7fa;
+    border-radius: 5px;
+    padding: 0;
+}
+.bp-section-title-icon svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+.bp-section-sub {
+    margin: 5px 0 0;
+    color: #64748b;
+    font-size: 13px;
+    line-height: 1.55;
+    /* max-width: 70ch; */
+}
+.bp-section-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 5px 11px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    background: #eff4ff;
+    color: #1d4ed8;
+    border: 1px solid #c7d7fa;
+    white-space: nowrap;
+}
+.bp-section-pill--muted {
+    background: #f1f5f9;
+    color: #475569;
+    border-color: #e2e8f0;
+}
+
+/* Settings strip: Password + Watermark side-by-side. */
+.bp-pack-options {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 10px;
+    align-items: stretch;
+}
+.bp-pack-options-col {
+    display: flex;
+    min-width: 0;
+    align-items: stretch;
+}
+.bp-pack-options-col > .bp-watermark-list {
+    display: flex;
+    width: 100%;
+    min-width: 0;
+}
+.bp-pack-options .bp-watermark-card,
+.bp-pack-options .bp-password-card {
+    box-sizing: border-box;
+    gap: 6px;
+    padding: 7px 10px;
+}
+.bp-pack-options-col > .bp-password-card,
+.bp-pack-options-col > .bp-watermark-list > .bp-watermark-card {
+    flex: 1 1 auto;
+    width: 100%;
+}
+
+@media (max-width: 900px) {
+    .bp-pack-options { grid-template-columns: 1fr; }
+}
+
+/* Two-pane row that holds the Merge Order and Bookmarks
+   sections side-by-side. The merge-order pane is the
+   primary surface (drag-and-drop needs the room) so it
+   gets the wider track; bookmarks is a compact companion
+   list. Falls back to a single column under 1100px. */
+.bp-pack-twopane {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 16px;
+    align-items: stretch;
+    flex: 1 1 0;
+    min-height: 0;
+    overflow: hidden;
+}
+.bp-pack-twopane > .bp-section {
+    display: flex;
+    min-height: 0;
+    margin-top: 0;
+}
+.bp-pack-twopane .bp-pack-panel {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+}
+@media (max-width: 1100px) {
+    .bp-pack-twopane {
+        grid-template-columns: 1fr;
+    }
+}
+
+.bp-pack-panel {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 12px;
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.bp-pack-panel-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #0f172a;
+    letter-spacing: -0.01em;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+/* Document type icon shared between the merge-order and
+   bookmark rows so the two surfaces read as one consistent
+   document list. */
+.bp-doc-icon {
+    width: 40px;
+    height: 48px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    flex-shrink: 0;
+    box-shadow: 0 4px 10px rgba(15, 23, 42, 0.08);
+    position: relative;
+}
+.bp-doc-icon::after {
+    content: "";
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: 10px;
+    height: 10px;
+    background: rgba(255, 255, 255, 0.35);
+    border-bottom-left-radius: 4px;
+}
+.bp-doc-icon--word    { background: linear-gradient(180deg, #2563eb, #1d4ed8); }
+.bp-doc-icon--excel   { background: linear-gradient(180deg, #16a34a, #15803d); }
+.bp-doc-icon--ppt     { background: linear-gradient(180deg, #ea580c, #c2410c); }
+.bp-doc-icon--generic { background: linear-gradient(180deg, #475569, #334155); }
+
+/* Toolbar stat (sections count) next to the Build button.
+   The Pack step header shows a "3 / SECTIONS" stat next
+   to the Export button so the user has a glanceable
+   confirmation of how many documents will be merged. The
+   value uses a large bold number; the label is a small
+   uppercase tag. A thin vertical divider separates the
+   stat from the button so the two read as siblings rather
+   than one merged unit. */
+.bp-toolbar-stat {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: center;
+    line-height: 1.05;
+    padding: 2px 14px;
+    border-right: 1px solid #e2e8f0;
+    margin-right: 4px;
+    min-width: 60px;
+}
+.bp-toolbar-stat-value {
+    font-size: 24px;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: -0.02em;
+    line-height: 1;
+}
+.bp-toolbar-stat-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-top: 2px;
+}
+
+/* ---- Merge order rows ---------------------------------------- */
+.bp-reorder-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.bp-reorder-row {
+    display: grid;
+    /* Column widths match the document-icon's 40x48 footprint
+       (see .bp-doc-icon) and the 32px handle/index cells so
+       the icon column lines up with the doc-icon shown in the
+       Pack page's bookmark list. */
+    grid-template-columns: 32px 40px minmax(0, 1fr) 32px;
+    align-items: center;
+    min-height: 48px;
+    gap: 12px;
+    padding: 10px 14px;
+    border-radius: 12px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    cursor: grab;
+    user-select: none;
+    transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
+}
+.bp-reorder-row:hover {
+    border-color: #c7d7fa;
+    box-shadow: 0 4px 12px rgba(29, 78, 216, 0.08);
+    background: #fbfdff;
+}
+.bp-reorder-row.dragging { opacity: 0.6; cursor: grabbing; }
+.bp-reorder-row.drop-target-above { box-shadow: 0 -2px 0 0 #1d4ed8 inset, 0 1px 2px rgba(15, 23, 42, 0.04); }
+.bp-reorder-row.drop-target-below { box-shadow: 0 2px 0 0 #1d4ed8 inset, 0 1px 2px rgba(15, 23, 42, 0.04); }
+
+.bp-reorder-row-handle {
+    appearance: none;
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    width: 32px;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #64748b;
+    cursor: grab;
+    padding: 0;
+    transition: background .15s ease, color .15s ease, border-color .15s ease;
+}
+.bp-reorder-row:hover .bp-reorder-row-handle {
+    background: #eff4ff;
+    color: #1d4ed8;
+    border-color: #c7d7fa;
+}
+.bp-reorder-row.dragging .bp-reorder-row-handle { cursor: grabbing; }
+
+.bp-reorder-row-meta { min-width: 0; }
+.bp-reorder-row-name {
+    font-weight: 700;
+    color: #0f172a;
+    font-size: 14.5px;
+    line-height: 1.3;
+    letter-spacing: -0.005em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.bp-reorder-row-sub {
+    font-size: 12px;
+    color: #64748b;
+    margin-top: 3px;
+    line-height: 1.4;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.bp-reorder-row-divider {
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: #cbd5e1;
+    display: inline-block;
+}
+
+.bp-reorder-row-index {
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    background: #1d4ed8;
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 4px 10px rgba(29, 78, 216, 0.18);
+}
+
+/* ---- Bookmark rows ------------------------------------------- */
+.bp-bookmark-editor {
+    display: grid;
+    gap: 8px;
+}
+/* Inside the side pane the bookmark row needs a more compact
+   layout: a slim header row (index + icon + name) followed by
+   a full-width bookmark input. The index badge sits in the
+   top-left corner so the file name + icon can flow beside it. */
+.bp-bookmark-row {
+    display: grid;
+    grid-template-columns: 26px 36px minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    align-items: center;
+    gap: 6px 10px;
+    padding: 7px 10px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    transition: border-color .15s ease, box-shadow .15s ease;
+}
+.bp-bookmark-row:hover {
+    border-color: #c7d7fa;
+    box-shadow: 0 4px 12px rgba(29, 78, 216, 0.06);
+}
+.bp-bookmark-row-index {
+    grid-row: 1;
+    grid-column: 1;
+    width: 24px;
+    height: 24px;
+    border-radius: 8px;
+    background: #eff4ff;
+    color: #1d4ed8;
+    font-weight: 700;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+.bp-bookmark-row .bp-doc-icon {
+    grid-row: 1;
+    grid-column: 2;
+    width: 30px;
+    height: 34px;
+    font-size: 10px;
+}
+.bp-bookmark-row-meta {
+    grid-row: 1;
+    grid-column: 3;
+    min-width: 0;
+}
+.bp-bookmark-row-name {
+    font-weight: 700;
+    color: #0f172a;
+    font-size: 13.5px;
+    line-height: 1.3;
+    letter-spacing: -0.005em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.bp-bookmark-row-sub {
+    font-size: 11.5px;
+    color: #64748b;
+    margin-top: 3px;
+    line-height: 1.4;
+}
+.bp-bookmark-input {
+    grid-row: 2;
+    grid-column: 1 / -1;
+    align-self: stretch;
+    box-sizing: border-box;
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    border-radius: 8px;
+    padding: 7px 10px;
+    font-size: 13px;
+    line-height: 1.4;
+    color: #0f172a;
+    width: 100%;
+    min-width: 0;
+}
+.bp-bookmark-input:focus {
+    outline: none;
+    border-color: #2b76ff;
+    box-shadow: 0 0 0 2px rgba(43, 118, 255, 0.16);
+}
+
+.bp-watermark-row {
+    display: grid;
+    grid-template-columns: 36px minmax(0, 1fr);
+    gap: 8px;
+    padding: 10px 10px 10px 12px;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    align-items: start;
+}
+.bp-watermark-row.is-disabled { opacity: 0.6; }
+.bp-watermark-meta { min-width: 0; }
+.bp-watermark-name { font-weight: 600; color: #0f172a; font-size: 12.5px; }
+
+/* ----------------------------------------------------------------
+   Common (packet-wide) watermark card + password card.
+   Enterprise neutral surface (light grey/white) so the cards
+   read as "settings" rather than as warnings. The blue
+   `.is-on` accent is reserved for when a feature is actually
+   enabled.
+   ---------------------------------------------------------------- */
+.bp-watermark-card,
+.bp-password-card {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 14px 16px;
+    border-radius: 12px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
+}
+.bp-watermark-card.is-on,
+.bp-password-card.is-on {
+    background: #eff4ff;
+    border-color: #bfdbfe;
+    box-shadow: 0 1px 2px rgba(29, 78, 216, 0.06);
+}
+.bp-watermark-card h4,
+.bp-password-card h4 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 700;
+    color: #0f172a;
+    letter-spacing: -0.015em;
+    line-height: 1.3;
+}
+.bp-watermark-card p,
+.bp-password-card p {
+    margin: 0;
+    color: #475569;
+    font-size: 12.5px;
+    line-height: 1.55;
+}
+.bp-watermark-heading {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    justify-content: space-between;
+}
+.bp-watermark-heading-text { min-width: 0; }
+.bp-watermark-heading-sub {
+    margin: 2px 0 0;
+    color: #64748b;
+    font-size: 12px;
+    line-height: 1.45;
+}
+.bp-watermark-controls {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 140px;
+    gap: 10px;
+    align-items: end;
+}
+/* Hide the watermark text + colour controls whenever the
+   packet-wide watermark toggle is in the OFF state. The
+   `is-on` class is mirrored on the card by the JS that
+   renders the Pack step, so disabling/enabling the toggle
+   in the UI keeps the controls in sync without any extra
+   wiring. */
+.bp-watermark-card:not(.is-on) .bp-watermark-controls {
+    display: none;
+}
+.bp-watermark-field { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.bp-watermark-field--narrow { width: 140px; }
+.bp-watermark-field-label {
+    font-size: 10.5px;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+.bp-watermark-text {
+    padding: 9px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 13.5px;
+    background: #ffffff;
+    color: #0f172a;
+    min-width: 0;
+    width: 100%;
+    line-height: 1.4;
+}
+.bp-watermark-text:focus {
+    outline: none;
+    border-color: #2b76ff;
+    box-shadow: 0 0 0 2px rgba(43, 118, 255, 0.2);
+}
+.bp-watermark-color-label {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 36px;
+    padding: 0 10px 0 4px;
+    border-radius: 8px;
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: border-color .15s ease, box-shadow .15s ease;
+}
+.bp-watermark-color-label:hover {
+    border-color: #2b76ff;
+    box-shadow: 0 0 0 2px rgba(43, 118, 255, 0.16);
+}
+.bp-watermark-color-swatch {
+    width: 26px;
+    height: 26px;
+    border-radius: 6px;
+    pointer-events: none;
+    box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.18);
+    flex-shrink: 0;
+}
+.bp-watermark-color-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #64748b;
+    flex-shrink: 0;
+}
+.bp-watermark-color-hex {
+    font-family: 'JetBrains Mono', Menlo, Consolas, monospace;
+    font-size: 12px;
+    font-weight: 700;
+    color: #0f172a;
+    letter-spacing: 0.04em;
+    pointer-events: none;
+}
+.bp-watermark-color {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    opacity: 0;
+}
+.bp-watermark-color:focus-visible ~ .bp-watermark-color-hex {
+    color: #1d4ed8;
+}
+
+.bp-toggle {
+    appearance: none;
+    -webkit-appearance: none;
+    flex: 0 0 36px;
+    width: 36px;
+    height: 20px;
+    background: #cbd5e1;
+    border-radius: 999px;
+    position: relative;
+    cursor: pointer;
+    transition: background .15s ease;
+    border: 0;
+    padding: 0;
+}
+.bp-toggle::after {
+    content: "";
+    position: absolute;
+    top: 3px;
+    left: 2px;
+    width: 14px;
+    height: 14px;
+    background: #ffffff;
+    border-radius: 50%;
+    transition: left .15s ease;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.2);
+}
+.bp-toggle.is-on { background: #16a34a; }
+.bp-toggle.is-on::after { left: 20px; }
+.bp-toggle:hover { background: #94a3b8; }
+.bp-toggle.is-on:hover { background: #15803d; }
+.bp-toggle:focus-visible { outline: 2px solid #2b76ff; outline-offset: 3px; }
+.bp-toggle:disabled { cursor: not-allowed; opacity: 0.55; }
+
+/* NOTE: the base .bp-password-card surface is defined above
+   in the unified .bp-watermark-card, .bp-password-card block
+   (neutral #f8fafc / #e2e8f0). The duplicate orange-background
+   rule has been removed so the off-state looks intentional
+   rather than like a warning. The .is-on accent remains in the
+   unified block above. */
+.bp-password-heading { display: none; } /* kept for backwards
+                                           compat with older markup;
+                                           the unified
+                                           .bp-watermark-heading
+                                           is the canonical
+                                           header now. */
+
+.bp-password-body {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.bp-password-fields {
+    display: grid;
+    gap: 6px;
+}
+.bp-password-fields input {
+    padding: 8px 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 13px;
+    background: #ffffff;
+    color: #0f172a;
+}
+.bp-password-fields input:focus {
+    outline: none;
+    border-color: #2b76ff;
+    box-shadow: 0 0 0 2px rgba(43, 118, 255, 0.2);
+}
+
+.bp-password-feedback {
+    margin: 0;
+    font-size: 12.5px;
+    line-height: 1.5;
+    font-weight: 600;
+}
+.bp-password-feedback.is-info { color: #475569; }
+.bp-password-feedback.is-success { color: #13733e; }
+.bp-password-feedback.is-error { color: #b91c1c; }
+
+.bp-info-callout {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-left: 3px solid #1d4ed8;
+    border-radius: 10px;
+    padding: 12px 14px;
+    color: #334155;
+    font-size: 12.5px;
+    margin: 0;
+    line-height: 1.55;
+}
+.bp-info-callout-glyph {
+    flex: 0 0 18px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #ffffff;
+    color: #1d4ed8;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 11px;
+    font-style: italic;
+    box-shadow: inset 0 0 0 1px #c7d7fa;
+}
+
+/* ----------------------------------------------------------------
+   Export dashboard
+   ---------------------------------------------------------------- */
+.bp-export-grid {
+    width: min(100%, 1100px);
+    margin: 14px auto 0;
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+.bp-export-cards {
+    display: grid;
+    gap: 12px;
+    grid-template-columns: repeat(auto-fit,minmax(280px,1fr));
+    grid-auto-rows: minmax(210px, 1fr);
+}
+
+.bp-export-card {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 18px 18px 16px;
+    border-radius: 16px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 8px 22px rgba(15, 23, 42, 0.04);
+    height: 100%;
+    box-sizing: border-box;
+}
+.bp-export-card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+}
+.bp-export-card-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: linear-gradient(180deg,#ef4444 0%,#dc2626 100%);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    box-shadow: 0 6px 16px rgba(239, 68, 68, 0.22);
+}
+.bp-export-card-icon.is-zip {
+    background: linear-gradient(180deg,#fbbf24,#f59e0b);
+    box-shadow: 0 6px 16px rgba(245, 158, 11, 0.22);
+}
+.bp-export-card-icon.is-manifest {
+    background: linear-gradient(180deg,#9ca3af,#6b7280);
+    box-shadow: 0 6px 16px rgba(107, 114, 128, 0.22);
+}
+
+.bp-export-card-title {
+    font-size: 17px;
+    font-weight: 700;
+    color: #0f172a;
+    letter-spacing: -0.02em;
+    line-height: 1.25;
+    margin: 0;
+}
+.bp-export-card-sub {
+    font-size: 13px;
+    color: #475569;
+    line-height: 1.55;
+    margin: 0;
+}
+.bp-export-card-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: auto;
+}
+
+.bp-export-card-actions .bp-cta-primary {
+    width: 96px;
+    height: 40px;
+    box-sizing: border-box;
+}
+
+#bpContinuePack.bp-pulse-running,
+#bpContinuePack.bp-pulse-running:disabled,
+#bpRunPack.bp-pulse-running,
+#bpRunPack.bp-pulse-running:disabled,
+#bpDownloadPdfCard.bp-pulse-running,
+#bpDownloadPdfCard.bp-pulse-running:disabled,
+#bpDownloadZip.bp-pulse-running,
+#bpDownloadZip.bp-pulse-running:disabled,
+#bpDownloadManifest.bp-pulse-running,
+#bpDownloadManifest.bp-pulse-running:disabled {
+    opacity: 1 !important;
+    transform: scale(1.05);
+    animation: bpButtonPop 0.35s ease-out,
+        bpPulseGlow 1.4s ease-out 0.35s 3;
+}
+
+@keyframes bpButtonPop {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 rgba(0, 87, 255, 0);
+    }
+    60% {
+        transform: scale(1.08);
+        box-shadow: 0 0 0 8px rgba(0, 87, 255, 0);
+    }
+    100% {
+        transform: scale(1.05);
+        box-shadow: 0 4px 12px rgba(0, 87, 255, 0.35);
+    }
+}
+
+@keyframes bpPulseGlow {
+    0% {
+        box-shadow: 0 4px 12px rgba(0, 87, 255, 0.35),
+            0 0 0 0 rgba(0, 87, 255, 0.6);
+    }
+    70% {
+        box-shadow: 0 4px 12px rgba(0, 87, 255, 0.35),
+            0 0 0 14px rgba(0, 87, 255, 0);
+    }
+    100% {
+        box-shadow: 0 4px 12px rgba(0, 87, 255, 0.35),
+            0 0 0 0 rgba(0, 87, 255, 0);
+    }
+}
+
+.bp-export-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px,1fr));
+    gap: 12px;
+    margin-top: 16px;
+}
+.bp-export-summary-cell {
+    padding: 14px 18px;
+    border-radius: 12px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    transition: border-color .15s ease, transform .12s ease;
+}
+.bp-export-summary-cell:hover {
+    border-color: #c7d7fa;
+    transform: translateY(-1px);
+}
+.bp-export-summary-value {
+    font-size: 26px;
+    font-weight: 700;
+    color: #0f172a;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+}
+.bp-export-summary-label {
+    font-size: 11.5px;
+    font-weight: 700;
+    color: #64748b;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-top: 4px;
+}
+
+
+/* ----------------------------------------------------------------
+   Choose-scenario panel overrides (Upload view)
+   ----------------------------------------------------------------
+   The Upload view renders a .choose-scenario-panel inside
+   the centre panel (see board-pack.js renderUpload). The
+   base styles are defined in claim-intake.css. These
+   scoped overrides tune the typography and spacing for
+   the Board Pack context so it matches the rest of the
+   workflow screens.
+   ---------------------------------------------------------------- */
+#centre-panel .choose-scenario-panel {
+    padding: 18px 22px;
+    gap: 10px;
+    box-shadow: 0 8px 22px rgba(15, 23, 42, 0.04);
+}
+
+#centre-panel .choose-scenario-panel h1 {
+    font-size: 22px;
+    line-height: 1.25;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    color: #0f172a;
+    text-wrap: balance;
+}
+
+#centre-panel .choose-scenario-body {
+    font-size: 13.5px;
+    line-height: 1.6;
+    color: #475569;
+    /* max-width: 80ch; */
+}
+
+#centre-panel .choose-scenario-hint {
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: #64748b;
+    font-weight: 500;
+}
+
+/* ----------------------------------------------------------------
+   Section-title eyebrow (Upload-view hero + scenario card)
+   ----------------------------------------------------------------
+   The base `.section-title` from claim-intake.css is an
+   uppercase, bold, monochrome label used as a section header
+   (e.g. the "PACKET" / "REVIEW MODES" headings in the left
+   rail). For the Upload view's center hero ("Board Pack
+   Demo") and the inner card's eyebrow ("SCENARIO OBJECTIVE")
+   we want a different treatment - a tinted pill that reads
+   as an "eyebrow" above the main hero copy. The modifier
+   `.section-title--eyebrow` keeps the same uppercase + letter
+   spacing so the two treatments still feel related, but
+   swaps to a rounded blue-tinted pill that matches the
+   visual language of `.bp-toolbar-eyebrow` used inside the
+   Pack / Convert / Export toolbars.
+
+   The goal of this design pass is to make the Upload view
+   feel like a unified "scenario card": the eyebrow pill
+   clearly labels the section, the hero H1 underneath states
+   the goal of the workflow, the body copy explains what the
+   user should do, and the CTA + hint row is the action.
+   ---------------------------------------------------------------- */
+.section-title--eyebrow {
+    display: inline-flex;
+    align-items: center;
+    align-self: flex-start;
+    gap: 6px;
+    margin: 0;
+    padding: 5px 11px;
+    background: #eff4ff;
+    color: #1d4ed8;
+    border: 1px solid #c7d7fa;
+    border-radius: 999px;
+    font-size: 10.5px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    line-height: 1;
+    /* The base `.section-title` has a `padding: 2px 2px 6px`
+       — strip it out so the pill proportions look right. */
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+/* Inline icon that sits inside an eyebrow pill. The icon
+   inherits the pill's text colour so a single CSS variable
+   swap re-skins every icon at once. We use a real SVG
+   element (rendered by board-pack.js / BoardPack.cshtml)
+   sized down to match the 10.5px uppercase label so the
+   glyph sits visually balanced inside the pill. */
+.section-title-eyebrow-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 12px;
+    height: 12px;
+    color: #1d4ed8;
+    flex-shrink: 0;
+    /* `currentColor` inside the SVG inherits the icon's
+       text colour so the stroke and the pill text match. */
+}
+.section-title-eyebrow-icon svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+/* Per-eyebrow tone variants. The base eyebrow is the
+   blue pill used by the centre hero ("Board Pack Demo");
+   the SCENARIO OBJECTIVE eyebrow inside the scenario card
+   uses the same blue palette so the two pills read as
+   siblings. If we ever need a different tone for either
+   (e.g. green for "Done" states) the modifier class
+   makes it a one-line override without touching the base
+   rules above. */
+.section-title--eyebrow-demo {
+    background: #eff4ff;
+    color: #1d4ed8;
+    border-color: #c7d7fa;
+}
+.section-title--eyebrow-demo .section-title-eyebrow-icon {
+    color: #1d4ed8;
+}
+
+.section-title--eyebrow-scenario {
+    background: #eff4ff;
+    color: #1d4ed8;
+    border-color: #c7d7fa;
+}
+.section-title--eyebrow-scenario .section-title-eyebrow-icon {
+    color: #1d4ed8;
+}
+
+/* When the eyebrow sits inside the .center-header block the
+   default vertical margin from the surrounding flex column
+   leaves too much air above it; snap it tighter so the
+   eyebrow hugs the hero below it. */
+.center-header > div > .section-title--eyebrow {
+    margin-bottom: 8px;
+}
+
+/* SCENARIO OBJECTIVE eyebrow uses the same pill style as
+   the centre hero — tuck it into the corner of the
+   .choose-scenario-panel so the panel feels like a single
+   enterprise card rather than a stack of loose headings. */
+#centre-panel .choose-scenario-panel > .section-title,
+#centre-panel .choose-scenario-panel > .section-title--eyebrow {
+    margin: 0;
+    padding: 0;
+}
+
+/* The headline `<h1>` immediately under the scenario eyebrow
+   already gets its typography from the existing
+   `#centre-panel .choose-scenario-panel h1` rule; keep it
+   flush under the pill by tightening the gap. */
+#centre-panel .choose-scenario-panel {
+    gap: 12px;
+}
+
+#centre-panel .choose-scenario-panel > h1:first-of-type {
+    margin-top: -2px;
+}
+
+/* The CTA + hint row inside the scenario card. The base
+   .choose-scenario-cta is `display: flex` with `flex-wrap`
+   — keep it that way so narrow viewports stack cleanly,
+   but make sure the button + hint stay visually balanced
+   when there is room to sit on a single row. */
+#centre-panel .choose-scenario-cta {
+    align-items: center;
+    gap: 14px;
+}
+
+#centre-panel .choose-scenario-cta-btn {
+    /* The base .primary-btn in claim-intake.css already gives
+       us the blue rounded button. Add a subtle arrow glyph
+       after the label to suggest "continue forward", matching
+       the CTA shown in the design reference. */
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#centre-panel .choose-scenario-cta-btn::after {
+    content: "\2192"; /* rightwards arrow */
+    font-size: 14px;
+    line-height: 1;
+    font-weight: 700;
+}
+
+/* ----------------------------------------------------------------
+   Manifest modal (JSON)
+   ---------------------------------------------------------------- */
+.json-preview-body {
+    margin: 0;
+    background: #0f172a;
+    color: #e2e8f0;
+    font-family: 'JetBrains Mono', Menlo, Consolas, monospace;
+    font-size: 12.5px;
+    line-height: 1.55;
+    padding: 18px 20px;
+    border-radius: 12px;
+    /* The JSON modal reuses the shared `.pdf-preview-modal-body`
+       shell, which is a `display: flex` row. The original
+       `height: 100%` only sized the pre against the body's
+       content height, not the available row track, so the JSON
+       rendered at the top half of the modal and the bottom
+       stayed empty. Becoming a proper flex item with
+       `min-height: 0` lets the scrollbar live inside the
+       filled region instead of pushing the layout. */
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 0;
+    align-self: stretch;
+    width: auto;
+    height: auto;
+    overflow: auto;
+    white-space: pre;
+}
+
+/* ----------------------------------------------------------------
+   General utility classes used by the centre-panel renderer
+   ---------------------------------------------------------------- */
+.bp-empty-state {
+    border: 1px dashed #d6deeb;
+    border-radius: 16px;
+    padding: 32px 24px;
+    background: #fbfdff;
+    color: #475569;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    margin-top: 16px;
+}
+.bp-empty-state-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    background: #edf4ff;
+    color: #1d4ed8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    box-shadow: 0 6px 16px rgba(29, 78, 216, 0.12);
+}
+
+.bp-action-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    justify-content: flex-end;
+    margin-left: auto;
+}
+
+.bp-warning-callout {
+    background: #fff7ed;
+    border: 1px solid #fed7aa;
+    border-left: 3px solid #c2410c;
+    border-radius: 12px;
+    padding: 12px 16px;
+    color: #9a3412;
+    font-size: 13.5px;
+    margin-top: 12px;
+    line-height: 1.55;
+    font-weight: 500;
+}
+
+.bp-error-callout {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-left: 3px solid #b91c1c;
+    border-radius: 12px;
+    padding: 12px 16px;
+    color: #b91c1c;
+    font-size: 13.5px;
+    margin-top: 12px;
+    line-height: 1.55;
+    font-weight: 500;
+}
+
+.bp-divider {
+    height: 1px;
+    background: #e5e7eb;
+    margin: 12px 0;
+    border: 0;
+}
+
+.bp-link {
+    background: transparent;
+    border: 0;
+    color: #1d4ed8;
+    font-weight: 700;
+    cursor: pointer;
+    padding: 0;
+    font-size: 13px;
+}
+.bp-link:hover { text-decoration: underline; }
+
+/* ----------------------------------------------------------------
+   Board pack page should use the same enterprise look as
+   Claim Intake: stepper, side panel, centre panel. The base
+   workspace shell is owned by .upload-shell.
+   ---------------------------------------------------------------- */
+.bp-centre-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-radius: 12px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    margin-bottom: 4px;
+}
+
+.bp-centre-toolbar-main { min-width: 0; }
+
+.bp-centre-toolbar h2 {
+    margin: 0;
+    font-size: 19px;
+    font-weight: 700;
+    color: #0f172a;
+    letter-spacing: -0.02em;
+    line-height: 1.25;
+}
+
+.bp-centre-toolbar-sub {
+    margin: 5px 0 0;
+    color: #475569;
+    font-size: 13.5px;
+    line-height: 1.5;
+    /* max-width: 70ch; */
+}
+
+/* ----------------------------------------------------------------
+   Responsive Board Pack shell
+   ----------------------------------------------------------------
+   The shared demo stylesheet keeps the shell at viewport height and
+   hides overflow for the desktop viewer layout. That clips workflow
+   content when browser zoom reduces the effective viewport width. The
+   Board Pack page needs a document-level vertical scrollbar so every
+   step remains reachable at zoom and on small screens.
+   ---------------------------------------------------------------- */
+html,
+body {
+    height: auto;
+    min-height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+.upload-shell {
+    height: auto;
+    min-height: calc(100vh - 100px);
+    overflow: visible;
+}
+
+.upload-panel,
+.upload-center,
+#centre-panel {
+    overflow: visible;
+}
+
+.packet-contents-scroll,
+.bp-convert-grid,
+.bp-pack-grid,
+.bp-export-grid {
+    min-width: 0;
+}
+
+@media (max-width: 1100px) {
+    .upload-shell {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: auto;
+        min-height: 0;
+    }
+
+    .upload-left {
+        min-height: auto;
+    }
+
+    .upload-center {
+        min-height: 520px;
+    }
+
+    #centre-panel {
+        min-height: 0;
+    }
+
+    .bp-convert-grid {
+        max-height: none;
+        overflow: visible;
+    }
+}
+
+@media (max-width: 680px) {
+    .smart-doc-header-wrap {
+        padding: 8px 8px 4px;
+    }
+
+    .claim-workflow-wrap {
+        padding: 0 8px;
+    }
+
+    .upload-shell {
+        gap: 10px;
+        padding: 8px 8px 16px;
+    }
+
+    .upload-panel {
+        padding: 10px;
+        border-radius: 12px;
+    }
+
+    .packet-contents-scroll {
+        overflow-x: auto;
+    }
+
+    .packet-contents-table {
+        min-width: 560px;
+    }
+
+    .bp-pack-grid,
+    .bp-export-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+/* Eyebrow above the toolbar H2. Mirrors the
+   .section-title pill in the landing view so the
+   four workflow screens share a single visual
+   language. */
+.bp-toolbar-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    align-self: flex-start;
+    gap: 6px;
+    margin: 0 0 6px;
+    padding: 4px 10px;
+    background: #eff4ff;
+    color: #1d4ed8;
+    border: 1px solid #c7d7fa;
+    border-radius: 999px;
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    line-height: 1;
+}
+
+.bp-cta-primary {
+    background: #1d4ed8;
+    color: #ffffff;
+    border: 0;
+    border-radius: 8px;
+    padding: 9px 16px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 6px 14px rgba(29, 78, 216, 0.18);
+    transition: background .15s ease, transform .15s ease;
+    font-size: 13.5px;
+    line-height: 1;
+}
+.bp-cta-primary:hover { background: #1e40af; }
+.bp-cta-primary:disabled { background: #cbd5e1; color: #f8fafc; cursor: not-allowed; box-shadow: none; }
+.bp-cta-primary.is-danger { background: #b91c1c; box-shadow: 0 6px 14px rgba(185, 28, 28, 0.18); }
+.bp-cta-primary.is-danger:hover { background: #991b1b; }
+.bp-cta-primary.is-success { background: #13733e; box-shadow: 0 6px 14px rgba(19, 115, 62, 0.18); }
+.bp-cta-primary.is-success:hover { background: #0f5b32; }
+
+/* "Up to date" Build button state.
+   When the previously generated Board Pack is still in
+   sync with the current Pack configuration, the Build
+   button is disabled and visually re-skinned to a calm
+   neutral "done" appearance so the user understands the
+   PDF/ZIP/manifest they already have on the Export step
+   is trustworthy. The success-green is too loud for a
+   disabled state, so we swap to a muted grey that still
+   reads as "complete" without inviting a click. The
+   `is-current` modifier is added by renderPack() on top
+   of `is-success` when isExportCurrent() is true. */
+.bp-cta-primary.is-success.is-current,
+.bp-cta-primary.is-success.is-current:disabled {
+    background: #d1d5db;
+    color: #475569;
+    box-shadow: none;
+    cursor: not-allowed;
+}
+.bp-cta-primary.is-success.is-current:hover {
+    background: #d1d5db;
+}
+
+/* "Board Pack is up to date" info banner.
+   Rendered by renderPack() directly under the toolbar
+   when the previous export is still in sync. Sits at
+   the top of the centre panel so the user sees the
+   explanation the moment they return to the Pack step,
+   without scrolling past the watermark / password /
+   bookmark editors. The green palette mirrors the
+   completed-workflow-step tick so the visual language
+   stays consistent: green = "this is good and current". */
+.bp-export-current-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 14px;
+    margin: 0 0 16px 0;
+    background: #ecfdf5;
+    border: 1px solid #a7f3d0;
+    border-radius: 10px;
+    color: #065f46;
+    font-size: 12.5px;
+    line-height: 1.45;
+}
+.bp-export-current-banner-glyph {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #10b981;
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1;
+    margin-top: 1px;
+}
+.bp-export-current-banner-text {
+    flex: 1 1 auto;
+    font-size: 13px;
+    line-height: 1.5;
+    font-weight: 500;
+}
+
+.bp-cta-secondary {
+    background: #ffffff;
+    color: #1d4ed8;
+    border: 1px solid #c7d7fa;
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-weight: 700;
+    cursor: pointer;
+    font-size: 13px;
+    transition: background .15s ease;
+}
+.bp-cta-secondary:hover { background: #eff4ff; }
+.bp-cta-secondary:disabled { background: #f8fafc; color: #94a3b8; cursor: not-allowed; }
+
+/* ----------------------------------------------------------------
+   "Packet contents" state badge (Upload view)
+   ----------------------------------------------------------------
+   Mirrors claim-intake.css .packet-state-badge so the Board
+   Pack file table reads identically to Claim Intake at a
+   glance. Variants map to the four conversion statuses set
+   by BoardPackOfficeConverter:
+     Waiting     -> muted grey      -> .bp-packet-state-badge--waiting
+     Converting  -> blue  (in flight)-> .bp-packet-state-badge--converting
+     Converted   -> green (success)  -> .bp-packet-state-badge--converted
+     Failed      -> red   (error)    -> .bp-packet-state-badge--failed
+   ---------------------------------------------------------------- */
+.bp-packet-state-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    line-height: 1;
+    white-space: nowrap;
+    border: 1px solid transparent;
+}
+
+.bp-packet-state-badge::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: 0.85;
+    flex-shrink: 0;
+}
+
+.bp-packet-state-badge--waiting {
+    color: #475569;
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+}
+
+.bp-packet-state-badge--converting {
+    color: #1d4ed8;
+    background: #eff4ff;
+    border-color: #c7d7fa;
+}
+
+.bp-packet-state-badge--converted {
+    color: #047857;
+    background: #ecfdf5;
+    border-color: #a7f3d0;
+}
+
+.bp-packet-state-badge--failed {
+    color: #b91c1c;
+    background: #fef2f2;
+    border-color: #fecaca;
+}
+.bp-password-heading {
+    display: flex;

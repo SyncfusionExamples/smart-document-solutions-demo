@@ -1,0 +1,277 @@
+@page "/contract-review"
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Contract Review";
+
+    var appBasePath = HttpContextAccessor.HttpContext?.Request.PathBase.Value?.TrimEnd('/') ?? string.Empty;
+    var originUrl = $"{Request.Scheme}://{Request.Host}{(string.IsNullOrWhiteSpace(appBasePath) ? string.Empty : appBasePath)}";
+}
+
+<!-- Self-contained client module. The server renders the
+     static layout + stepper; the JS owns the workflow state
+     (modes, accept/reject log, exported PDF URL) and re-paints
+     the centre panel + stepper + packet list on every change. -->
+<script src="~/js/contract-review/compareReview.js" asp-append-version="true"></script>
+<script src="~/js/contract-review/contractReview.js" asp-append-version="true"></script>
+<link rel="stylesheet" href="~/css/contract-review.css" asp-append-version="true" />
+
+<!-- ================= HEADER (matches claim-intake's Smart Document Solutions header) ================= -->
+<header class="cr-header-wrap">
+    <div class="cr-header">
+        <div class="cr-header-brand">
+            <img class="smart-doc-header-glyph" src="~/favicon.ico" asp-append-version="true" alt="" aria-hidden="true" />
+            <span class="cr-header-title">Smart Document Solutions</span>
+            <span class="cr-header-divider" aria-hidden="true">|</span>
+            <span class="cr-header-subtitle">Contract review</span>
+        </div>
+        <div class="cr-header-actions">
+            @* <a href="@(originUrl + appBasePath)/" class="cr-back-btn" aria-label="Back to home" title="Back to home">
+                <span class="cr-back-glyph" aria-hidden="true">&#x2190;</span>
+                <span>Home</span>
+            </a> *@
+            <button id="crResetBtn" type="button" class="cr-reset-btn" aria-label="Reset workflow">
+                <span class="cr-reset-glyph" aria-hidden="true">&#x21bb;</span>
+                <span>Reset</span>
+            </button>
+        </div>
+    </div>
+</header>
+
+<!-- ================= WORKFLOW STEPPER ================= -->
+<section class="cr-workflow-wrap">
+    <div class="cr-workflow">
+        <div class="cr-workflow-inner">
+            <div class="cr-workflow-steps">
+                <div class="workflow-step" id="cr-step-import" data-mode="import">
+                    <div class="workflow-circle">1</div>
+                    <span>Import</span>
+                </div>
+                <div class="workflow-line" id="cr-line-import"></div>
+                <div class="workflow-step disabled" id="cr-step-compare" data-mode="compare">
+                    <div class="workflow-circle">2</div>
+                    <span>Compare</span>
+                </div>
+                <div class="workflow-line" id="cr-line-compare"></div>
+                <div class="workflow-step disabled" id="cr-step-summary" data-mode="summary">
+                    <div class="workflow-circle">3</div>
+                    <span>AI summary</span>
+                </div>
+                <div class="workflow-line" id="cr-line-summary"></div>
+                <div class="workflow-step disabled" id="cr-step-export" data-mode="export">
+                    <div class="workflow-circle">4</div>
+                    <span>Export</span>
+                </div>
+                <div class="workflow-count" id="cr-workflow-count">0 of 4 steps complete</div>
+            </div>
+            <div class="cr-workflow-actions" id="cr-workflow-actions" aria-label="Workflow actions"></div>
+        </div>
+    </div>
+</section>
+
+<!-- ================= MAIN SHELL ================= -->
+<!-- The left packet + review-modes panel was removed.
+     The centre panel is now full-width on every step.
+     Imports use two side-by-side upload zones (Original
+     /Revised), Compare shows the dual DOCX editor grid
+     (40/60 split), Summary and Export keep their
+     full-width centre layout. -->
+<div class="cr-shell cr-shell--full">
+    <main class="cr-panel cr-centre-panel">
+        <div class="cr-centre-section" id="cr-centre-panel">
+            <!-- All centre content is rendered by the JS module -->
+        </div>
+    </main>
+</div>
+
+<!-- =============== PDF PREVIEW MODAL =============== -->
+<!-- Single, page-scoped modal host. The client module mounts
+     a Syncfusion PDF Viewer into #crPdfPreviewHost on demand
+     (see openPdfPreviewModal in contractReview.js). The modal
+     is hidden by default; toggled via the .is-open class
+     from JS. One host is shared by every Preview button so
+     we never accumulate EJ2 viewer instances. Mirrors the
+     pattern used on ClaimIntake.cshtml for parity across
+     the two demos. -->
+<div id="crPdfPreviewModal" class="cr-pdf-preview-modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="crPdfPreviewTitle">
+    <div class="cr-pdf-preview-modal-backdrop" data-cr-pdf-preview-close></div>
+    <div class="cr-pdf-preview-modal-shell">
+        <div class="cr-pdf-preview-modal-header">
+            <h2 id="crPdfPreviewTitle" class="cr-pdf-preview-modal-title">Preview</h2>
+            <button id="crPdfPreviewCloseBtn" type="button" class="cr-pdf-preview-modal-close" data-cr-pdf-preview-close aria-label="Close preview">&times;</button>
+        </div>
+        <div class="cr-pdf-preview-modal-body">
+            <div class="cr-pdf-preview-wrap">
+                <div id="crPdfPreviewHost" class="cr-pdf-viewer-host"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ================= Inline boot script ================= -->
+<script>
+    // Wire up the static affordances the JS module does not own
+    // (stepper circles + sidebar modes); the JS module re-paints
+    // their visual state but the click handlers stay here so
+    // window.claimContractReview can stay decoupled from the
+    // server-rendered markup.
+    (function () {
+        function activate(mode) {
+            if (!mode) { return; }
+            if (window.claimContractReview && window.claimContractReview.setMode) {
+                window.claimContractReview.setMode(mode);
+            }
+        }
+        function attach() {
+            document.querySelectorAll('.workflow-step').forEach(function (el) {
+                var handler = function () {
+                    if (el.classList.contains('disabled') || el.getAttribute('aria-disabled') === 'true') { return; }
+                    var m = el.getAttribute('data-mode');
+                    activate(m);
+                };
+                el.addEventListener('click', handler);
+                el.addEventListener('keydown', function (e) {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        handler();
+                    }
+                });
+            });
+            document.querySelectorAll('.cr-mode-item').forEach(function (button) {
+                button.addEventListener('click', function () {
+                    if (button.disabled) { return; }
+                    var mode = button.getAttribute('data-mode') || '';
+                    activate(mode);
+                });
+            });
+            var addBtn = document.getElementById('crAddFilesBtn');
+            var uploadInput = document.getElementById('crUploadInput');
+            if (addBtn && uploadInput) {
+                addBtn.addEventListener('click', function () {
+                    if (addBtn.disabled || addBtn.getAttribute('data-locked') === '1') { return; }
+                    uploadInput.click();
+                });
+                uploadInput.addEventListener('change', function () {
+                    var files = Array.from(uploadInput.files || []);
+                    if (!files.length) { return; }
+                    if (!window.claimContractReview || !window.claimContractReview.uploadFile) {
+                        return;
+                    }
+                    addBtn.disabled = true;
+                    var original = addBtn.textContent;
+                    addBtn.textContent = 'Uploading...';
+                    window.claimContractReview.uploadFile(files[0])
+                        .catch(function (err) {
+                            alert(err && err.message ? err.message : 'Upload failed.');
+                        })
+                        .then(function () {
+                            addBtn.disabled = false;
+                            addBtn.textContent = original;
+                            uploadInput.value = '';
+                        });
+                });
+            }
+            // Two-zoned uploader on the Import view. The
+            // buttons + hidden inputs are rendered by
+            // renderImport() inside contractReview.js; the
+            // handlers here are page-scoped because the
+            // inputs are recreated on every centre-panel
+            // re-render, so we delegate by id and guard
+            // with _wired.
+            function wireImportUpload(id, side) {
+                var input = document.getElementById(id);
+                if (!input || input._wired) { return; }
+                input._wired = true;
+                input.addEventListener('change', function () {
+                    var file = input.files && input.files[0];
+                    if (!file) { return; }
+                    if (!window.claimContractReview || !window.claimContractReview.uploadFile) {
+                        return;
+                    }
+                    var host = input.closest('.cr-import-dropzone');
+                    var status = host ? host.querySelector('.cr-import-dropzone-status') : null;
+                    if (status) { status.textContent = 'Uploading ' + file.name + '...'; }
+                    window.claimContractReview.uploadFile(file, side)
+                        .catch(function (err) {
+                            alert((err && err.message) ? err.message : 'Upload failed.');
+                            if (status) { status.textContent = 'Upload failed.'; }
+                        })
+                        .then(function () {
+                            input.value = '';
+                        });
+                });
+            }
+            function wireImportZone(id, side) {
+                var host = document.getElementById(id);
+                if (!host) { return; }
+                var inputId = id.replace('-zone', '-input');
+                var input = document.getElementById(inputId);
+                if (input) { wireImportUpload(inputId, side); }
+                if (host._wired) { return; }
+                host._wired = true;
+                host.addEventListener('click', function (ev) {
+                    // Only respond to clicks on the host itself
+                    // or the pick button - the input is hidden
+                    // and clicking the zone should always open
+                    // the file picker.
+                    if (input) { input.click(); }
+                });
+                // Native drag-and-drop: highlight the zone on
+                // dragenter, accept a single .docx on drop, and
+                // route it through the same uploadFile helper.
+                host.addEventListener('dragover', function (ev) {
+                    ev.preventDefault();
+                    host.classList.add('cr-is-dragover');
+                });
+                host.addEventListener('dragleave', function (ev) {
+                    ev.preventDefault();
+                    host.classList.remove('cr-is-dragover');
+                });
+                host.addEventListener('drop', function (ev) {
+                    ev.preventDefault();
+                    host.classList.remove('cr-is-dragover');
+                    var file = ev.dataTransfer && ev.dataTransfer.files && ev.dataTransfer.files[0];
+                    if (!file) { return; }
+                    if (!window.claimContractReview || !window.claimContractReview.uploadFile) { return; }
+                    var status = host.querySelector('.cr-import-dropzone-status');
+                    if (status) { status.textContent = 'Uploading ' + file.name + '...'; }
+                    window.claimContractReview.uploadFile(file, side)
+                        .catch(function (err) {
+                            alert((err && err.message) ? err.message : 'Upload failed.');
+                            if (status) { status.textContent = 'Upload failed.'; }
+                        });
+                });
+            }
+            // Wire whichever zones are present on this render.
+            wireImportZone('cr-import-original-zone', 'Original');
+            wireImportZone('cr-import-revised-zone', 'Revised');
+            // Expose the wiring helper to the client module
+            // so renderImport() can re-wire the freshly
+            // rendered dropzones after every centre-panel
+            // re-render. Without this the new host divs
+            // (with no _wired flag) would never get their
+            // click / drag-and-drop handlers attached, and
+            // the "Replace file" button on the Revised zone
+            // would silently no-op. The client module
+            // invokes window.crWireImportZones() at the end
+            // of renderImport().
+            window.crWireImportZones = function () {
+                wireImportZone('cr-import-original-zone', 'Original');
+                wireImportZone('cr-import-revised-zone', 'Revised');
+            };
+            var resetBtn = document.getElementById('crResetBtn');
+            if (resetBtn) {
+                resetBtn.addEventListener('click', function () {
+                    if (window.claimContractReview && window.claimContractReview.reset) {
+                        window.claimContractReview.reset();
+                    }
+                });
+            }
+        }
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', attach);
+        } else {
+            attach();
+        }
+    })();
+</script>

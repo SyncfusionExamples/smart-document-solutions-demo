@@ -1,0 +1,2149 @@
+/* =========================================================
+   Contract Review - stylesheet.
+
+   This file is intentionally self-contained. The class
+   prefix "cr-" avoids collisions with the claim-intake.css
+   stylesheet that ships with this project, but the visual
+   vocabulary is deliberately the same so users feel they are
+   using the same product: rounded cards, soft borders, the
+   same stepper circle / connector line / count layout, the
+   same packet panel and review-modes sidebar.
+
+   The DOCX editor + inline track-changes styling live in
+   .cr-docx-editor / .cr-compare-grid / .cr-compare-pane, and
+   the export PDF viewer uses the EJ2 inline iframe the EJ2
+   PDF Viewer creates when given a documentPath.
+   ========================================================= */
+
+html, body {
+    min-height: 100%;
+    margin: 0;
+    background: #f4f7fb;
+    overflow-x: hidden;
+    overflow-y: auto;
+    font-family: Inter, system-ui, -apple-system, Segoe UI, sans-serif;
+}
+
+html, body, button, input, textarea, select {
+    font-family: Inter, system-ui, -apple-system, Segoe UI, sans-serif;
+}
+
+*, *::before, *::after {
+    font-family: inherit;
+}
+
+body {
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+/* =========================================================
+   HEADER (matches smart-doc-header-wrap on Claim Intake)
+   ========================================================= */
+
+.cr-header-wrap {
+    width: 100%;
+    background: transparent;
+    padding: 10px 14px 4px;
+    display: flex;
+    align-items: center;
+    box-sizing: border-box;
+}
+
+.cr-header {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    gap: 18px;
+    min-height: 42px;
+    padding: 10px 18px;
+    background: linear-gradient(135deg, #0f172a 0%, #1d4ed8 100%);
+    border-radius: 14px;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+    box-sizing: border-box;
+}
+
+.cr-header-brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #ffffff;
+}
+
+    .cr-header-brand img.smart-doc-header-glyph {
+        display: inline-block;
+        width: 32px;
+        height: 32px;
+        border-radius: 9px;
+        background: #ffffff;
+        object-fit: contain;
+        padding: 3px;
+        box-sizing: border-box;
+        flex-shrink: 0;
+    }
+
+.cr-header-title {
+    font-size: 16px;
+    font-weight: 800;
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: #ffffff;
+}
+
+.cr-header-divider {
+    color: rgba(255,255,255,0.42);
+}
+
+.cr-header-subtitle {
+    font-size: 13px;
+    font-weight: 500;
+    color: rgba(226, 232, 240, 0.86);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.cr-header-actions {
+    margin-left: auto;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.cr-back-btn,
+.cr-reset-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.18);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.32);
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.2;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 0.15s ease, transform 0.12s ease, box-shadow 0.15s ease;
+}
+
+    .cr-back-btn:hover,
+    .cr-reset-btn:hover {
+        background: rgba(255,255,255,0.24);
+        border-color: rgba(255,255,255,0.42);
+    }
+
+    .cr-back-btn .cr-back-glyph,
+    .cr-reset-btn .cr-reset-glyph {
+        font-size: 12px;
+        line-height: 1;
+    }
+
+/* =========================================================
+   STEPPER  (mirror of claim-workflow / workflow-step)
+   ========================================================= */
+
+.cr-workflow-wrap {
+    padding: 0 14px;
+    margin: 2px 0 4px;
+    background: transparent;
+}
+
+.cr-workflow {
+    display: block;
+    box-sizing: border-box;
+    width: 100%;
+}
+
+.cr-workflow-inner {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    background: #ffffff;
+    border-radius: 18px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 8px 16px rgba(15, 23, 42, 0.04);
+    box-sizing: border-box;
+}
+
+.cr-workflow-steps {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0;
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    padding: 0;
+    width: 100%;
+    box-shadow: none;
+}
+
+.workflow-step {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #687385;
+    font-size: 13px;
+    font-weight: 500;
+    flex: 0 0 auto;
+    cursor: pointer;
+}
+
+.workflow-circle {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #f1f3f5;
+    border: 1px solid #d5d9df;
+    color: #687385;
+    font-size: 12px;
+    font-weight: 600;
+    box-sizing: border-box;
+}
+
+.workflow-step.active {
+    color: #075dcc;
+    font-weight: 600;
+}
+
+    .workflow-step.active .workflow-circle {
+        background: #0d6efd;
+        border-color: #0d6efd;
+        color: #ffffff;
+    }
+
+.workflow-step.completed {
+    color: #111827;
+}
+
+    .workflow-step.completed .workflow-circle {
+        background: #65a843;
+        border-color: #65a843;
+        color: #ffffff;
+    }
+
+.workflow-step.disabled,
+.workflow-step[aria-disabled="true"] {
+    cursor: not-allowed;
+    color: #9ca3af;
+}
+
+    .workflow-step.disabled .workflow-circle,
+    .workflow-step[aria-disabled="true"] .workflow-circle {
+        background: #f3f4f6;
+        border-color: #e5e7eb;
+        color: #9ca3af;
+    }
+
+.workflow-line {
+    height: 1px;
+    flex: 0 1 48px;
+    width: 48px;
+    max-width: 48px;
+    min-width: 0;
+    margin: 0 8px;
+    background: #d9dde3;
+}
+
+    .workflow-line.completed {
+        background: #65a843;
+    }
+
+.workflow-count {
+    margin-left: auto;
+    padding: 0 4px 0 12px;
+    font-size: 12px;
+    color: #64748b;
+    white-space: nowrap;
+    flex: 0 0 auto;
+}
+
+.cr-workflow-actions {
+    margin-left: 10px;
+    display: flex;
+    gap: 10px;
+}
+
+/* =========================================================
+   APP SHELL  (mirror of upload-shell)
+   ========================================================= */
+
+.cr-shell {
+    min-height: calc(100vh - 100px);
+    display: grid;
+    grid-template-columns: 260px minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+    gap: 12px;
+    padding: 10px 14px 18px;
+    box-sizing: border-box;
+    overflow: visible;
+}
+
+/* Full-width variant used after the left panel was
+   removed: the centre panel takes the entire viewport
+   width and the grid becomes a single column. */
+.cr-shell.cr-shell--full {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.cr-panel {
+    min-height: 0;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+    padding: 12px;
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.03);
+    overflow: auto;
+}
+
+.cr-panel-left {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    justify-content: space-between;
+}
+
+.cr-section-title {
+    margin: 0;
+    padding: 2px 2px 6px;
+    font-size: 14px;
+    line-height: 1.2;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    color: #6b7280;
+    text-transform: uppercase;
+}
+
+/* =========================================================
+   PACKET LIST & SIDEBAR (mirror of packet-panel)
+   ========================================================= */
+
+.cr-packet-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.cr-add-files {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #0d6efd;
+    background: transparent;
+    border: 0;
+    padding: 0;
+    border-radius: 0;
+    cursor: pointer;
+}
+
+    .cr-add-files[disabled] {
+        opacity: 0.5;
+        cursor: not-allowed;
+        color: #94a3b8;
+        border-color: #e2e8f0;
+    }
+
+.cr-packet-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.cr-packet-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    min-height: 40px;
+    text-align: left;
+    border: 1px solid transparent;
+    background: #f8fafc;
+    border-radius: 8px;
+    padding: 6px 10px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    color: #1f2937;
+    font-size: 13px;
+}
+
+    .cr-packet-item:hover {
+        background: #f1f5f9;
+        border-color: #e2e8f0;
+    }
+
+    .cr-packet-item.cr-active {
+        background: #edf4ff;
+        border-color: #d9e7ff;
+        color: #1d4ed8;
+        font-weight: 600;
+    }
+
+    .cr-packet-item.cr-locked {
+        opacity: 0.55;
+        cursor: not-allowed;
+    }
+
+.cr-packet-icon {
+    width: 26px;
+    height: 26px;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    font-size: 10px;
+    font-weight: 700;
+    flex: 0 0 auto;
+}
+
+    .cr-packet-icon.cr-kind-original,
+    .cr-packet-icon.cr-kind-revised,
+    .cr-packet-icon.cr-kind-negotiated,
+    .cr-packet-icon.cr-kind-pdf {
+        background: #0052b4;
+    }
+
+    .cr-packet-icon.cr-kind-default {
+        background: #6c757d;
+    }
+
+.cr-packet-body {
+    flex: 1 1 auto;
+    overflow: hidden;
+}
+
+.cr-packet-name {
+    font-size: 13px;
+    line-height: 1.2;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.cr-packet-meta {
+    font-size: 11px;
+    color: #64748b;
+}
+
+.cr-packet-tag {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 1px 6px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    background: #e2e8f0;
+    color: #475569;
+}
+
+    .cr-packet-tag.cr-tag-original {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+
+    .cr-packet-tag.cr-tag-revised {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .cr-packet-tag.cr-tag-negotiated {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .cr-packet-tag.cr-tag-final {
+        background: #e9d5ff;
+        color: #6b21a8;
+    }
+
+.cr-packet-empty {
+    text-align: center;
+    font-size: 12px;
+    color: #94a3b8;
+    padding: 16px;
+    border: 1px dashed #e2e8f0;
+    border-radius: 8px;
+}
+
+/* =========================================================
+   SIDEBAR MODES (mirror of review-mode-item)
+   ========================================================= */
+
+.cr-modes-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.cr-mode-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    min-height: 34px;
+    padding: 7px 10px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    background: transparent;
+    color: #1f2937;
+    text-align: left;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+    .cr-mode-item:hover {
+        background: #f8fafc;
+        border-color: #eef2f7;
+    }
+
+    .cr-mode-item.cr-active {
+        background: #edf4ff;
+        border-color: #d9e7ff;
+        color: #1d4ed8;
+        font-weight: 600;
+    }
+
+    .cr-mode-item[disabled] {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+.cr-mode-glyph {
+    width: 18px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+}
+
+/* =========================================================
+   CENTRE PANEL
+   ========================================================= */
+
+.cr-centre-panel {
+    min-height: 0;
+    padding: 12px;
+    overflow: visible;
+    display: flex;
+    flex-direction: column;
+}
+
+.cr-centre-section {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.cr-center-header {
+    padding: 4px 4px 8px;
+}
+
+.cr-center-header h1 {
+    font-size: 22px;
+    font-weight: 700;
+    color: #111827;
+    margin: 4px 0 6px 0;
+}
+
+.cr-center-header p {
+    margin: 0;
+    color: #475569;
+    font-size: 14px;
+}
+
+.cr-landing-intro {
+    color: #475569;
+    font-size: 14px;
+    max-width: 760px;
+    margin: 8px 0 0;
+}
+
+/* Two info cards at the top of the Import view:
+   the blue "Contract Review Demo" overview on the
+   left, the green "Scenario Objective" card on the
+   right. They mirror the original light blue /
+   light green treatments used in the design. */
+.cr-overview-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 14px;
+    align-items: stretch;
+}
+
+@media (max-width: 980px) {
+    .cr-overview-row {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+.cr-info-card {
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    background: #ffffff;
+    padding: 24px 26px;
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 20px;
+    min-width: 0;
+}
+
+.cr-info-card:first-child {
+    background: #fbfdff;
+}
+
+.cr-info-card-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+    .cr-info-card-icon.cr-info-card-icon--objective {
+        background: #dcfce7;
+        color: #15803d;
+    }
+
+    .cr-info-card-icon svg {
+        width: 23px;
+        height: 23px;
+        display: block;
+    }
+
+.cr-info-card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+    flex: 1 1 auto;
+}
+
+.cr-info-card-eyebrow {
+    margin: 0;
+    font-size: 10.5px;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #1d4ed8;
+}
+
+    .cr-info-card-eyebrow.cr-info-card-eyebrow--objective {
+        color: #15803d;
+    }
+
+.cr-info-card-title {
+    margin: 0;
+    font-size: 16px;
+    line-height: 1.25;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.cr-info-card-body p {
+    margin: 0;
+    font-size: 12.5px;
+    line-height: 1.45;
+    color: #475569;
+}
+
+.cr-import-objective {
+    padding: 16px 20px;
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+    background: #ffffff;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-width: 0;
+    flex: 0 0 auto;
+}
+
+.cr-import-objective h2 {
+    margin: 0 0 8px;
+    color: #0f172a;
+    font-size: 22px;
+}
+
+.cr-import-objective p {
+    max-width: 760px;
+    color: #526b8f;
+    font-size: 14px;
+    line-height: 1.55;
+}
+
+.cr-import-action {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 2px;
+}
+
+.cr-import-action .cr-btn {
+    background: #2b76ff;
+    border-radius: 10px;
+    padding: 12px 16px;
+}
+
+.cr-import-action .cr-btn:hover {
+    background: #1d5fe0;
+}
+
+.cr-import-action-note {
+    color: #64748b;
+    font-size: 13px;
+}
+
+/* =========================================================
+   IMPORT VIEW - two upload dropzones (Original/Revised)
+
+   The packet list moved out of the left sidebar, so the
+   Import view now hosts its own upload affordances:
+   two side-by-side dropzones, one for the original
+   agreement and one for the revised agreement. The
+   dropzones are click-to-open + native HTML5 drag-and-drop.
+   The whole card is the click target; the actual
+   <input type="file"> is hidden and triggered by JS.
+
+   Each zone shows:
+     - an eyebrow ("Original" / "Revised")
+     - a heading with the file name once a DOCX has been
+       uploaded, or a hint when empty
+     - a status line (idle / uploading / done)
+   ========================================================= */
+
+    /* The two dropzone cards sit side by side at their
+   natural height; align-items: start keeps them at
+   the top of the grid row so a tall summary card
+   on one side does not stretch the other side. */
+.cr-import-zones {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 18px;
+    flex: 0 0 auto;
+    align-items: start;
+}
+
+/* Each dropzone card is a tinted column with two
+   children:
+     1. .cr-import-summary   - a tinted header that
+        carries the side colour wash, the eyebrow,
+        the file name + status line, and the
+        "Replace file" button when the slot is
+        already populated.
+     2. .cr-import-dropspot  - a large dashed drop
+        area with a centred cloud-upload icon, the
+        "Drag & drop DOCX file here or" prompt,
+        and the filled "Browse file" button.
+   The card itself uses the matching side tint so
+   both children sit on a coherent colour family.
+   The whole card is the click target - we do not
+   bind a click handler to the inner Browse button
+   because the card already opens the hidden file
+   picker on click (and the button just plays the
+   same role visually). */
+.cr-import-dropzone {
+    display: flex;
+    flex-direction: column;
+    border-radius: 10px;
+    border: 1px solid #e5e7eb;
+    background: #ecfdf5;
+    cursor: pointer;
+    transition: box-shadow 0.15s ease, transform 0.12s ease;
+    overflow: hidden;
+    min-height: 168px;
+}
+
+    .cr-import-dropzone.cr-import-dropzone--revised {
+        background: #ecfdf5;
+    }
+
+    .cr-import-dropzone:hover {
+        box-shadow: 0 6px 18px rgba(15, 23, 42, 0.07);
+    }
+
+    .cr-import-dropzone.cr-import-dropzone--original.cr-is-dragover {
+        background: #dbeafe;
+        box-shadow: inset 0 0 0 2px #93c5fd;
+    }
+
+    .cr-import-dropzone.cr-import-dropzone--revised.cr-is-dragover {
+        background: #d1fae5;
+        box-shadow: inset 0 0 0 2px #86efac;
+    }
+
+    /* Tinted header: the eyebrow + filename + status
+       triad sits in a row with the Replace file
+       button aligned to the right edge. The eyebrow
+       has a small doc icon on its left to mirror
+       the file-card treatment used elsewhere. */
+    .cr-import-summary {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-areas:
+            "eyebrow replace"
+            "title   replace"
+            "status  replace";
+        row-gap: 4px;
+        column-gap: 12px;
+        padding: 14px 20px 10px;
+        align-items: center;
+    }
+
+.cr-import-dropzone-eyebrow {
+    grid-area: eyebrow;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 10.5px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #1d4ed8;
+}
+
+    .cr-import-dropzone-eyebrow.cr-eyebrow-revised {
+        color: #15803d;
+    }
+
+    .cr-import-summary-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        border-radius: 6px;
+        background: #ffffff;
+        color: #1d4ed8;
+        border: 1px solid #bfdbfe;
+    }
+
+    .cr-import-dropzone.cr-import-dropzone--revised .cr-import-summary-icon {
+        color: #15803d;
+        border-color: #bbf7d0;
+    }
+
+    .cr-import-summary-icon svg {
+        width: 23px;
+        height: 23px;
+        display: block;
+    }
+
+.cr-import-dropzone-title {
+    grid-area: title;
+    font-size: 16px;
+    font-weight: 700;
+    color: #0f172a;
+    line-height: 1.3;
+    margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+}
+
+.cr-import-dropzone-status {
+    grid-area: status;
+    font-size: 12px;
+    color: #475569;
+    line-height: 1.4;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+}
+
+.cr-import-dropzone-status.cr-status-ready {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: #15803d;
+    font-weight: 700;
+}
+
+.cr-import-status-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #dcfce7;
+    color: #15803d;
+    font-size: 11px;
+    line-height: 1;
+}
+
+/* "Replace file" pill - shown only on the tinted
+   summary header when the slot is already populated.
+   Positioned on the right of the summary grid so
+   the eyebrow / title / status can stretch left.
+   Empty on a fresh visit (Browse file lives in the
+   dropspot instead). */
+.cr-import-summary-replace {
+    grid-area: replace;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 14px;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #1d4ed8;
+    border: 1px solid #93c5fd;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    pointer-events: none;
+    /* The replace pill is rendered as an empty
+       string on the empty state, but the grid-area
+       still consumes space; show a placeholder dot
+       so the layout does not visibly collapse. */
+    min-width: 0;
+    display: none;
+}
+
+    .cr-import-dropzone-empty .cr-import-summary-replace {
+        display: none;
+    }
+
+    .cr-import-summary-replace:empty {
+        padding: 0;
+        border: 0;
+        background: transparent;
+    }
+
+/* Dropspot: a sub-region with its own dashed border
+   that lives inside the tinted card. This is the
+   large drop target. */
+.cr-import-dropspot {
+    margin: 0 14px 14px;
+    border: 2px dashed rgba(29, 78, 216, 0.32);
+    border-radius: 12px;
+    background: #ffffff;
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 10px 14px;
+    height: auto;
+    min-height: 112px;
+    flex-direction: column;
+    text-align: center;
+}
+
+    .cr-import-dropzone.cr-import-dropzone--revised .cr-import-dropspot {
+        border-color: rgba(21, 128, 61, 0.32);
+    }
+
+    .cr-import-dropspot-icon {
+        display: inline-flex;
+        width: 44px;
+        height: 44px;
+        width: 34px;
+        height: 34px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background: #dbeafe;
+        color: #1d4ed8;
+    }
+
+    .cr-import-dropzone.cr-import-dropzone--revised .cr-import-dropspot-icon {
+        background: #d1fae5;
+        color: #15803d;
+    }
+
+    .cr-import-dropspot-icon svg {
+        width: 24px;
+        height: 24px;
+        display: block;
+    }
+
+    .cr-import-dropspot-prompt {
+        font-size: 13px;
+        color: #475569;
+        font-weight: 500;
+    }
+
+    .cr-import-dropspot-btn {
+        background: #1d4ed8;
+        border-color: #1d4ed8;
+        color: #ffffff;
+        font-size: 13px;
+        font-weight: 700;
+        padding: 7px 14px;
+        border-radius: 8px;
+        border-style: solid;
+        border-width: 1px;
+        box-shadow: none;
+        cursor: pointer;
+        pointer-events: none;
+        /* Take no pointer events on the button; the
+           whole dropzone card opens the hidden file
+           picker. Avoiding event capture on the
+           inner button prevents the picker from
+           being opened twice (card click + button
+           click). */
+    }
+
+        .cr-import-dropzone.cr-import-dropzone--revised .cr-import-dropspot-btn {
+            background: #15803d;
+            border-color: #15803d;
+        }
+
+/* Compact footer: the "What happens next" hint + Run
+   compare button live on a single row below the
+   dropzones so the Import view fits in the viewport
+   without scrolling. The hint is hidden on narrow
+   viewports. */
+.cr-import-footer {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-top: auto;
+    padding: 10px 14px;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    background: #ffffff;
+    flex: 0 0 auto;
+}
+
+.cr-import-footer-text-block {
+    flex: 1 1 280px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.cr-import-footer-text {
+    color: #475569;
+    font-size: 12.5px;
+    line-height: 1.4;
+}
+
+.cr-import-footer-resume {
+    color: #0f766e;
+    font-size: 11.5px;
+    line-height: 1.35;
+    font-weight: 600;
+}
+
+.cr-import-footer-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+/* Import landing composition: keep the center workspace close to the
+   compact reference layout while preserving the existing upload behavior. */
+.cr-overview-row {
+    gap: 14px;
+}
+
+.cr-info-card {
+    min-height: 190px;
+    padding: 24px 26px;
+    border-radius: 10px;
+}
+
+.cr-info-card:first-child {
+    background: #ffffff;
+    border-color: #d7e6fb;
+}
+
+.cr-info-card:first-child .cr-info-card-eyebrow,
+.cr-info-card:first-child .cr-info-card-title,
+.cr-info-card:first-child .cr-info-card-body p {
+    color: #0f172a;
+}
+
+.cr-info-card:first-child .cr-info-card-icon {
+    background: #dbeafe;
+    color: #2563eb;
+}
+
+.cr-info-card:first-child .cr-info-card-body p {
+    color: #334155;
+}
+
+.cr-info-card:last-child {
+    border-radius: 10px;
+    padding: 24px 12px 12px;
+    gap: 10px;
+}
+
+.cr-info-card:last-child .cr-info-card-eyebrow {
+    letter-spacing: 0;
+    text-transform: none;
+    font-size: 16px;
+    color: #0f172a;
+}
+
+.cr-info-card:last-child .cr-info-card-title {
+    font-size: 12.5px;
+    font-weight: 400;
+    white-space: normal;
+}
+
+.cr-info-card:last-child .cr-info-card-body p {
+    color: #334155;
+}
+
+.cr-info-card:last-child .cr-info-card-body {
+    gap: 14px;
+    width: 100%;
+    align-self: stretch;
+}
+
+.cr-info-card-list {
+    display: grid;
+    gap: 7px;
+    list-style: none;
+    margin: 4px 0 0;
+    padding: 0;
+    color: #334155;
+    font-size: 12.5px;
+    line-height: 1.35;
+}
+
+.cr-info-card-list li::before {
+    content: "\2713";
+    display: inline-block;
+    width: 18px;
+    margin-right: 4px;
+    color: #2563eb;
+    font-weight: 800;
+}
+
+.cr-import-zones {
+    gap: 18px;
+}
+
+@media (max-width: 560px) {
+    html,
+    body {
+        overflow: auto;
+    }
+
+    .cr-shell {
+        height: auto;
+        overflow: visible;
+    }
+
+    .cr-centre-panel {
+        overflow: visible;
+    }
+
+    .cr-import-dropspot {
+        height: auto;
+        min-height: 72px;
+    }
+
+    .cr-import-dropspot-icon {
+        display: inline-flex;
+        width: 44px;
+        height: 44px;
+    }
+}
+
+/* Import view stacks the two zones vertically on small
+   viewports. The compare grid already collapses to a
+   single column below 980px, so the break point
+   matches. */
+@media (max-width: 980px) {
+    .cr-info-card:first-child,
+    .cr-info-card:last-child,
+    .cr-import-dropzone:first-child,
+    .cr-import-dropzone:last-child {
+        border-radius: 10px;
+    }
+
+    .cr-import-zones {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .cr-info-card:last-child .cr-info-card-title {
+        white-space: normal;
+    }
+}
+
+.cr-packet-contents-panel {
+    border: 1px solid #dfeaf8;
+    border-radius: 18px;
+    background: #ffffff;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    flex: 1 1 auto;
+}
+
+.cr-packet-contents-title {
+    padding: 12px 16px 10px;
+    color: #0f172a;
+    font-size: 1.1rem;
+    font-weight: 800;
+    line-height: 1.2;
+}
+
+.cr-packet-contents-scroll {
+    min-height: 0;
+    overflow: auto;
+    flex: 1 1 auto;
+}
+
+.cr-packet-contents-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+    background: #ffffff;
+}
+
+.cr-packet-contents-table th,
+.cr-packet-contents-table td {
+    padding: 7px 12px;
+    text-align: left;
+    border-bottom: 1px solid #edf3ff;
+    color: #1f2937;
+    font-size: 0.82rem;
+    word-break: break-word;
+}
+
+.cr-packet-contents-table thead th {
+    background: #f4f8ff;
+    color: #475569;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+}
+
+.cr-packet-contents-table tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+.cr-fill-flex {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* =========================================================
+   BUTTONS
+   ========================================================= */
+
+.cr-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    background: #0d6efd;
+    color: #ffffff;
+    font-size: 13.5px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+    .cr-btn:hover {
+        background: #0a58ca;
+        text-decoration: none;
+    }
+
+    .cr-btn:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+    }
+
+.cr-btn-primary {
+    background: #0d6efd;
+}
+
+.cr-btn-outline {
+    background: #ffffff;
+    color: #1f2937;
+    border-color: #cbd5e1;
+}
+
+    .cr-btn-outline:hover {
+        background: #f1f5f9;
+    }
+
+.cr-btn-large {
+    padding: 10px 18px;
+    font-size: 14px;
+}
+
+.cr-btn-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+/* =========================================================
+   IMPORT VIEW (Choose) - middle column breadcrumb area
+   ========================================================= */
+
+.cr-choose-card {
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    background: #f8fafc;
+    padding: 16px 18px;
+}
+
+.cr-choose-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 12px;
+    background: #ffffff;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid #e5e7eb;
+}
+
+    .cr-choose-table th,
+    .cr-choose-table td {
+        padding: 10px 14px;
+        font-size: 13px;
+        text-align: left;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    .cr-choose-table th {
+        font-weight: 600;
+        color: #475569;
+        background: #f8fafc;
+        font-size: 11.5px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+    }
+
+    .cr-choose-table tr:last-child td {
+        border-bottom: 0;
+    }
+
+    .cr-choose-table button {
+        background: transparent;
+        border: 1px solid #cbd5e1;
+        border-radius: 6px;
+        padding: 5px 10px;
+        font-size: 12.5px;
+        font-weight: 600;
+        color: #0d6efd;
+        cursor: pointer;
+    }
+
+        .cr-choose-table button:hover {
+            background: #edf4ff;
+            border-color: #93c5fd;
+        }
+
+.cr-choose-side-pill {
+    display: inline-block;
+    font-size: 10.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 2px 8px;
+    border-radius: 999px;
+}
+
+    .cr-choose-side-pill.cr-side-original {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+
+    .cr-choose-side-pill.cr-side-revised {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .cr-choose-side-pill.cr-side-either {
+        background: #e2e8f0;
+        color: #475569;
+    }
+
+/* =========================================================
+   COMPARE VIEW - dual panes + DOCX editor
+   ========================================================= */
+
+.cr-compare-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    flex-wrap: wrap;
+    padding: 8px 12px;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    flex: 0 0 auto;
+}
+
+.cr-compare-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: #1f2937;
+    cursor: pointer;
+}
+
+    .cr-compare-toggle input[type="checkbox"] {
+        accent-color: #0d6efd;
+    }
+
+.cr-compare-buttons {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.cr-compare-warning {
+    display: inline-flex;
+    align-items: center;
+    min-height: 34px;
+    padding: 0 12px;
+    border: 1px solid #fed7aa;
+    border-radius: 8px;
+    background: #fff7ed;
+    color: #c2410c;
+    font-size: 13px;
+}
+
+.cr-compare-warning-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    margin-right: 8px;
+    border-radius: 50%;
+    background: #f59e0b;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.cr-compare-warning[hidden] {
+    display: none;
+}
+
+.cr-compare-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 12px;
+    flex: 1 1 auto;
+    min-height: 620px;
+    margin-bottom: 8px;
+}
+
+/* 50/50 split used by the contract-review compare
+   surface: both the Original and Negotiated panes
+   share equal width. */
+.cr-compare-grid.cr-compare-grid--50-50 {
+    grid-template-columns: 50fr 50fr;
+}
+
+.cr-compare-pane {
+    display: flex;
+    flex-direction: column;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    overflow: hidden;
+    min-height: 0;
+}
+
+.cr-compare-pane-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    border-bottom: 1px solid #e5e7eb;
+    background: #f8fafc;
+    color: #1f2937;
+    font-size: 13px;
+    font-weight: 700;
+    gap: 8px;
+}
+
+    .cr-compare-pane-header .cr-pane-eyebrow {
+        font-size: 10.5px;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        color: #6b7280;
+        text-transform: uppercase;
+        margin-right: 6px;
+        flex: 0 0 auto;
+    }
+
+.cr-compare-pane-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    position: relative;
+}
+
+.cr-compare-pane .e-de-ctnr,
+.cr-compare-pane .e-de-doc-editor {
+    height: 100% !important;
+    min-height: 0 !important;
+}
+
+/* the left pane is read-only -- flash the badge once a side is ready */
+.cr-compare-pane.cr-ready .cr-pane-eyebrow {
+    color: #166534;
+}
+
+.cr-compare-divider {
+    align-self: center;
+    text-align: center;
+    font-size: 11px;
+    color: #6b7280;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+}
+
+/* =========================================================
+   AI SUMMARY VIEW (placeholder for phase 2)
+   ========================================================= */
+
+.cr-summary-card {
+    background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 28px 24px;
+}
+
+.cr-summary-eyebrow {
+    font-size: 11px;
+    color: #6b7280;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.cr-summary-title {
+    font-size: 22px;
+    color: #111827;
+    font-weight: 700;
+    margin: 4px 0 6px;
+}
+
+.cr-summary-heading-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.cr-summary-body {
+    font-size: 14px;
+    color: #475569;
+    line-height: 1.55;
+    max-width: 720px;
+}
+
+.cr-summary-changes {
+    margin-top: 14px;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    background: #ffffff;
+    padding: 10px 14px;
+    max-height: 260px;
+    overflow-y: auto;
+    font-size: 13px;
+    color: #1f2937;
+}
+
+.cr-summary-changes-row {
+    padding: 6px 0;
+    border-bottom: 1px dashed #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+    .cr-summary-changes-row:last-child {
+        border-bottom: 0;
+    }
+
+    .cr-summary-changes-row .cr-summary-meta {
+        font-size: 11.5px;
+        color: #64748b;
+        white-space: nowrap;
+    }
+
+.cr-summary-change-entry > div:first-child,
+.cr-summary-change-entry > .cr-summary-meta,
+.cr-summary-detail,
+.cr-summary-snapshot,
+.cr-summary-no-snapshot {
+    flex: 1 1 100%;
+}
+
+.cr-summary-change-entry > .cr-summary-meta {
+    order: -1;
+}
+
+.cr-summary-detail {
+    color: #475569;
+    font-size: 12px;
+}
+
+.cr-summary-snapshot {
+    width: 100%;
+    color: #1d4ed8;
+    font-size: 12px;
+}
+
+.cr-summary-snapshot pre {
+    max-height: 180px;
+    overflow: auto;
+    margin: 6px 0 0;
+    padding: 8px;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    background: #f8fafc;
+    color: #334155;
+    font: 11px/1.4 Consolas, "Courier New", monospace;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.cr-summary-no-snapshot {
+    color: #94a3b8;
+    font-size: 12px;
+}
+
+/* =========================================================
+   EXPORT VIEW - PDF viewer + downloads
+   ========================================================= */
+
+.cr-export-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+    height: 100%;
+    min-height: 0;
+}
+
+.cr-pdf-viewer-host {
+    width: 100%;
+    flex: 1 1 auto;
+    min-height: 480px;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #f1f5f9;
+}
+
+/* =========================================================
+   PDF PREVIEW MODAL
+
+   Same shape as the claim-intake modal so the two demos
+   present the reviewed PDF the same way. Toggled from JS
+   via the .is-open class. One host (#crPdfPreviewHost)
+   is reused across every Preview button so we never
+   accumulate EJ2 viewer instances.
+   ========================================================= */
+.cr-pdf-preview-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: none;
+    align-items: stretch;
+    justify-content: stretch;
+}
+
+    .cr-pdf-preview-modal.is-open {
+        display: flex;
+    }
+
+.cr-pdf-preview-modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.55);
+    backdrop-filter: blur(2px);
+}
+
+.cr-pdf-preview-modal-shell {
+    position: relative;
+    margin: 32px auto;
+    width: min(1180px, calc(100vw - 48px));
+    height: calc(100vh - 64px);
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 24px 60px rgba(15, 23, 42, 0.35);
+    display: grid;
+    grid-template-rows: auto 1fr;
+    overflow: hidden;
+}
+
+.cr-pdf-preview-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px;
+    border-bottom: 1px solid #e5e7eb;
+    background: #f8fafc;
+}
+
+.cr-pdf-preview-modal-title {
+    margin: 0;
+    font-size: 18px;
+    color: #0f172a;
+}
+
+.cr-pdf-preview-modal-close {
+    background: transparent;
+    border: 0;
+    font-size: 28px;
+    line-height: 1;
+    color: #475569;
+    cursor: pointer;
+    padding: 4px 10px;
+    border-radius: 8px;
+}
+
+    .cr-pdf-preview-modal-close:hover,
+    .cr-pdf-preview-modal-close:focus {
+        background: #e2e8f0;
+        color: #0f172a;
+        outline: none;
+    }
+
+.cr-pdf-preview-modal-body {
+    min-height: 0;
+    padding: 16px;
+    display: flex;
+}
+
+    .cr-pdf-preview-modal-body .cr-pdf-preview-wrap {
+        flex: 1 1 auto;
+        min-height: 0;
+        display: flex;
+    }
+
+/* =========================================================
+   EMPTY / ERROR
+   ========================================================= */
+
+.cr-info {
+    padding: 12px 14px;
+    border: 1px solid #dbeafe;
+    background: #eff6ff;
+    border-radius: 8px;
+    color: #1e3a8a;
+    font-size: 13px;
+    margin-top: 10px;
+}
+
+.cr-warning {
+    padding: 12px 14px;
+    border: 1px solid #fde68a;
+    background: #fffbeb;
+    border-radius: 8px;
+    color: #92400e;
+    font-size: 13px;
+    margin-top: 10px;
+}
+
+.cr-final-panel {
+    min-height: 0;
+    display: grid;
+    grid-template-rows: auto 1fr;
+    gap: 14px;
+}
+
+.cr-final-intro {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 22px 24px;
+    border: 1px solid #dfe5ee;
+    border-radius: 16px;
+    background: #ffffff;
+    text-align: center;
+}
+
+.cr-final-intro > div {
+    flex: 1 1 auto;
+}
+
+.cr-final-intro h2 {
+    margin: 0;
+    color: #0f172a;
+    font-size: 22px;
+}
+
+.cr-final-intro p {
+    margin: 4px 0 0;
+    color: #526b8f;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.cr-final-download-grid {
+    min-height: 0;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.cr-final-download-card {
+    border: 1px solid #dfe5ee;
+    border-radius: 16px;
+    background: #ffffff;
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.03);
+}
+
+.cr-final-download-card h3 {
+    margin: 0;
+    font-size: 18px;
+    color: #0f172a;
+}
+
+.cr-final-download-card p {
+    margin: 0;
+    color: #475569;
+    line-height: 1.5;
+    flex: 1 1 auto;
+}
+
+.cr-final-download-actions {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+.cr-final-render-btn {
+    align-self: center;
+}
+
+.cr-final-download-card .cr-btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+/* Hint text shown under the "Rendering..." button on
+   the AI summary page while the server is producing
+   the PDF. Tells the user the destination page will
+   load as soon as the file is ready, so they do not
+   wonder whether they need to click again or wait. */
+.cr-summary-render-hint {
+    margin-top: 10px;
+    color: #64748b;
+    font-size: 12px;
+    line-height: 1.45;
+    max-width: 520px;
+}
+
+/* Hint text shown on the Export page when no PDF is
+   on disk. Defensive: in normal operation the AI
+   summary page produces the PDF before the user
+   reaches Export, so this branch is effectively
+   unreachable. The hint exists for the case where
+   the user typed /?mode=export directly into the
+   address bar or navigated via the stepper after a
+   soft reset. */
+.cr-final-render-hint {
+    margin-top: 10px;
+    color: #64748b;
+    font-size: 12px;
+    line-height: 1.45;
+    max-width: 520px;
+}
+
+.cr-banner {
+    position: fixed;
+    right: 16px;
+    bottom: 16px;
+    padding: 12px 16px;
+    background: #111827;
+    color: white;
+    border-radius: 8px;
+    box-shadow: 0 12px 32px rgba(15, 23, 42, 0.4);
+    font-size: 13px;
+    z-index: 1000;
+    max-width: 320px;
+}
+
+    .cr-banner button {
+        background: transparent;
+        border: 0;
+        color: #cbd5e1;
+        font-size: 14px;
+        line-height: 1;
+        cursor: pointer;
+        margin-left: 8px;
+    }
+
+/* responsive */
+@media (max-width: 980px) {
+    .cr-compare-grid {
+        grid-template-columns: minmax(0, 1fr);
+        grid-auto-rows: min-content;
+    }
+
+    .cr-compare-pane {
+        min-height: 360px;
+    }
+
+    .cr-summary-heading-row {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .cr-ai-summary-toolbar {
+        align-self: stretch;
+        justify-content: flex-start;
+    }
+
+    .cr-ai-summary-editor-wrap {
+        min-height: 420px;
+    }
+}
+
+/* sync fusion docx editor default styling override -- keep our colour palette */
+.cr-compare-pane .e-de-statusbar,
+.cr-compare-pane .e-de-prop-pane {
+    border-radius: 0;
+}
+
+.cr-compare-pane .e-documenteditorcontainer .e-de-toolbar {
+    background: #f8fafc !important;
+}
+
+.cr-docx-area {
+    height: 100%;
+    min-height: 360px;
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+}
+
+.cr-docx-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: #64748b;
+    font-size: 13px;
+}
+/* =========================================================
+   AI SUMMARY VIEW (post phase 2)
+   Status pill + EJ2 DocumentEditor surface
+   ========================================================= */
+
+.cr-summary-status {
+    margin: 14px 0 6px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    line-height: 1.4;
+    border: 1px solid transparent;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.cr-summary-status--idle {
+    background: #f1f5f9;
+    border-color: #e2e8f0;
+    color: #475569;
+}
+
+.cr-summary-status--busy {
+    background: #fff7ed;
+    border-color: #fed7aa;
+    color: #9a3412;
+}
+
+.cr-summary-status--busy::before {
+    content: "";
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 2px solid #f59e0b;
+    border-top-color: transparent;
+    animation: cr-ai-summary-spin 0.9s linear infinite;
+    flex: 0 0 auto;
+}
+
+@keyframes cr-ai-summary-spin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+}
+
+.cr-summary-status--ready {
+    background: #ecfdf5;
+    border-color: #a7f3d0;
+    color: #065f46;
+}
+
+.cr-summary-status--ready::before {
+    content: "\2713";
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #10b981;
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 800;
+    flex: 0 0 auto;
+}
+
+.cr-summary-status--error {
+    background: #fef2f2;
+    border-color: #fecaca;
+    color: #991b1b;
+}
+
+.cr-ai-summary-toolbar {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 8px;
+    flex: 0 0 auto;
+    margin: 0 0 2px;
+}
+
+.cr-ai-summary-editor-wrap {
+    flex: 1 1 auto;
+    min-height: 560px;
+    margin: 8px 0 12px;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    overflow: hidden;
+    background: #ffffff;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
+}
+
+.cr-ai-summary-editor {
+    height: 100%;
+    width: 100%;
+}
+
+/* The EJ2 editor paints into a wrapper inside our
+   host. We re-style the surrounding chrome so it
+   blends with the rest of the contract-review UI. */
+.cr-ai-summary-editor .e-documenteditorcontainer,
+.cr-ai-summary-editor .e-de-container-outer,
+.cr-ai-summary-editor .e-de-container-wrap {
+    border: 0 !important;
+    height: 100% !important;
+}
+
+.cr-ai-summary-editor .e-documenteditorcontainer .e-de-toolbar {
+    background: #f8fafc !important;
+    border-bottom: 1px solid #e5e7eb !important;
+}
+
+.cr-summary-changes-collapse {
+    margin-top: 4px;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    background: #ffffff;
+    padding: 8px 14px;
+}
+
+.cr-summary-changes-collapse > summary {
+    cursor: pointer;
+    font-weight: 700;
+    color: #1f2937;
+    font-size: 13px;
+    list-style: none;
+    user-select: none;
+    padding: 4px 0;
+}
+
+.cr-summary-changes-collapse > summary::-webkit-details-marker {
+    display: none;
+}
+
+.cr-summary-changes-collapse > summary::before {
+    content: "\25B6";
+    display: inline-block;
+    margin-right: 8px;
+    font-size: 10px;
+    color: #6b7280;
+    transition: transform 0.15s ease;
+}
+
+.cr-summary-changes-collapse[open] > summary::before {
+    transform: rotate(90deg);
+}
+
+.cr-summary-changes-collapse .cr-summary-changes {
+    margin-top: 8px;
+    border: 0;
+    padding: 0;
+    max-height: 360px;
+}
+
+/* AI summary DOCX preview modal was removed; the
+   AI Summary card on the Export page is now PDF-only
+   and uses the same #crPdfPreviewModal as the
+   revised-document card. The .cr-aisummary-modal-shell
+   / .cr-aisummary-modal-body / .cr-aisummary-editor-host
+   rules that previously sized the EJ2 DocumentEditor
+   inside the dedicated modal are no longer needed. */
+
+.cr-warning {
+    padding: 18px 20px;
+    color: #991b1b;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+    font-size: 13px;
+}

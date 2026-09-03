@@ -1,0 +1,63 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    @{
+        string pageTitle = "Smart Document Solutions";
+        var path = ViewContext.HttpContext.Request.Path.Value?.ToLower() ?? string.Empty;
+        
+        if (path.Contains("claimintake") || path.Contains("claim-intake"))
+            pageTitle = "Claim Intake Demo";
+        else if (path.Contains("boardpack") || path.Contains("board-pack"))
+            pageTitle = "Board Pack Demo";
+        else if (path.Contains("contractreview") || path.Contains("contract-review"))
+            pageTitle = "Contract Review Demo";
+    }
+    <title>@pageTitle</title>
+    <link rel="icon" type="image/x-icon" href="~/favicon.ico" asp-append-version="true" />
+
+    <!-- Pdfviewer scripts -->
+    <link rel="stylesheet" href="https://cdn.syncfusion.com/ej2/34.1.29/fluent2.css" />
+    <script src="https://cdn.syncfusion.com/ej2/34.1.29/dist/ej2.min.js"></script>
+
+    <!-- Custom app styles - MUST be loaded AFTER the Syncfusion themes
+         so the left/right panel + review mode item styles win over the
+         framework's default button reset. -->
+    <link rel="stylesheet" href="~/css/claim-intake.css" asp-append-version=true />
+    <script>
+        (function () {
+            var pathBase = '@(Context.Request.PathBase.Value ?? string.Empty)';
+            window.appBasePath = pathBase || '';
+            window.appUrl = function (path) {
+                var base = (window.appBasePath || '').replace(/\/$/, '');
+                if (!path) {
+                    return base || '/';
+                }
+
+                if (!base || base === '/') {
+                    return path.charAt(0) === '/' ? path : '/' + path;
+                }
+
+                if (path === base || path.indexOf(base + '/') === 0 || path.indexOf(base + '?') === 0) {
+                    return path;
+                }
+
+                return path.charAt(0) === '/' ? base + path : base + '/' + path;
+            };
+            var originalFetch = window.fetch;
+            window.fetch = function (resource, init) {
+                if (typeof resource === 'string' && resource.charAt(0) === '/') {
+                    resource = window.appUrl(resource);
+                }
+                return originalFetch.call(this, resource, init);
+            };
+        })();
+    </script>
+</head>
+<body>
+    @RenderBody()
+    <ejs-scripts></ejs-scripts>
+</body>
+</html>

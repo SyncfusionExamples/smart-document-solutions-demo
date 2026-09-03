@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+  <ItemGroup>
+	<PackageReference Include="Azure.AI.OpenAI" Version="2.1.0" />	  
+	  <PackageReference Include="OpenAI" Version="2.3.0" />
+    <PackageReference Include="Syncfusion.EJ2.AspNet.Core" Version="34.1.33" />
+    <PackageReference Include="Syncfusion.ImagePreProcessor.Net.Core" Version="34.1.33" />
+    <PackageReference Include="Syncfusion.Pdf.Imaging.Net.Core" Version="34.1.33" />
+    <PackageReference Include="Syncfusion.Pdf.Net.Core" Version="34.1.33" />
+    <PackageReference Include="Syncfusion.PDF.OCR.Net.Core" Version="34.1.33" />
+    <PackageReference Include="Syncfusion.SmartDataExtractor.Net.Core" Version="34.1.33" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+	<PackageReference Include="Syncfusion.DocIO.Net.Core" Version="34.1.33" />
+	<PackageReference Include="Syncfusion.DocIORenderer.Net.Core" Version="34.1.33" />
+    <PackageReference Include="Syncfusion.XlsIO.Net.Core" Version="34.1.33" />
+    <PackageReference Include="Syncfusion.XlsIORenderer.Net.Core" Version="34.1.33" />
+    <PackageReference Include="System.Drawing.Common" Version="10.0.0" />
+    <PackageReference Include="Syncfusion.Presentation.Net.Core" Version="34.1.33" />
+    <PackageReference Include="Syncfusion.PresentationRenderer.Net.Core" Version="34.1.33" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,1028 @@
+/* ============================================================================
+   home.css
+
+   Standalone styles for the Smart Document Solutions home (gallery) page.
+   Intentionally scoped to ".home-root" so it never collides with the
+   ClaimIntake page styles (~/css/claim-intake.css) or with the global
+   <body> rules that pin the document viewer / reviewer to a fixed
+   viewport.
+
+   Layout strategy:
+     * The home page is a single vertical scroll.
+     * The top nav, hero, outcomes, and developer-eval sections are all
+       full-width with internal max-width constraints.
+     * The four outcome cards use CSS grid (1.55fr / 1fr split between
+       the flagship tile and the three compact tiles + a blank card).
+     * The flagship tile panel inside the grid and the "details"
+       panel below the cards both swap visibility with the
+       [hidden] attribute (driven by data-active-tile on .home-root),
+       so we never rely on JS to manage a class list.
+   ========================================================================== */
+
+/* The home page is loaded with the same global stylesheet as
+   ClaimIntake (~/css/claim-intake.css), which pins <html> and
+   <body> to overflow:hidden and a fixed 100vh viewport so the
+   ClaimIntake workflow never has to manage page scroll. That
+   breaks the gallery page (no scroll, content clipped). We
+   override the body+html overflow ONLY when .home-root is the
+   top-level content on the page, which today is always true
+   on the home page (the ClaimIntake page uses a different
+   root and is not affected). The selectors are scoped to
+   .home-root's nearest ancestor so the override cannot leak
+   to other pages. */
+.home-root {
+    position: relative;
+    width: 100%;
+    min-height: 100vh;
+    overflow: auto;
+    background: #f6f7f9;
+    color: #181c2c;
+    font-family: Inter, "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+body:has(> .home-root),
+html:has(body > .home-root),
+body.home-page,
+html.home-page {
+    overflow: auto !important;
+    height: auto !important;
+    min-height: 100%;
+}
+
+.home-root *,
+.home-root *::before,
+.home-root *::after {
+    box-sizing: border-box;
+}
+
+.home-root a {
+    color: #ffffff;
+    text-decoration: none;
+    transition: color 0.15s ease;
+}
+
+.home-root a:hover {
+    color: #0031b7;
+    text-decoration: underline;
+}
+
+.home-root ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+.home-root ::-webkit-scrollbar-thumb {
+    background: #c5c9d8;
+    border-radius: 8px;
+    border: 3px solid transparent;
+    background-clip: content-box;
+}
+
+/* =================================================================
+   Top nav
+   ================================================================= */
+
+.home-topnav {
+    height: 60px;
+    padding: 0 48px;
+    background: #001154;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+}
+
+.home-topnav-inner {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 32px;
+}
+
+.home-topnav-brand {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+}
+
+.home-topnav-mark {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #ffffff;
+    border-radius: 9px;
+    font: 700 12px Inter, sans-serif;
+    color: #ffffff;
+    overflow: hidden;
+}
+
+.home-topnav-mark img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: contain;
+    background: #ffffff;
+    border-radius: 9px;
+    padding: 3px;
+    box-sizing: border-box;
+}
+
+.home-topnav-name {
+    font: 500 15px "IBM Plex Sans", sans-serif;
+    letter-spacing: -0.01em;
+}
+
+.home-topnav-links {
+    display: flex;
+    gap: 22px;
+    font: 400 13.5px Inter, sans-serif;
+    color: rgba(255, 255, 255, 0.72);
+    flex: 1;
+    margin-left: 24px;
+}
+
+.home-topnav-link {
+    cursor: default;
+    user-select: none;
+}
+
+.home-topnav-link-muted {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.home-topnav-actions {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    font: 400 13.5px Inter, sans-serif;
+    color: rgba(255, 255, 255, 0.72);
+}
+
+.home-topnav-cta {
+    padding: 7px 14px;
+    border-radius: 6px;
+    background: #0057ff;
+    color: #ffffff;
+    font: 500 13px Inter, sans-serif;
+    cursor: default;
+    user-select: none;
+}
+
+/* =================================================================
+   Hero
+   ================================================================= */
+
+.home-hero {
+    position: relative;
+    padding: 22px 48px 20px;
+    background: linear-gradient(160deg, #001154 0%, #00187a 62%, #0031b7 100%);
+    color: #ffffff;
+    overflow: hidden;
+}
+
+.home-hero-grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+        linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+    background-size: 48px 48px;
+    pointer-events: none;
+}
+
+.home-hero-glow {
+    position: absolute;
+    right: -120px;
+    top: -160px;
+    width: 420px;
+    height: 420px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(0, 87, 255, 0.55), transparent 68%);
+    pointer-events: none;
+}
+
+.home-hero-inner {
+    position: relative;
+    max-width: 1080px;
+    margin: 0 auto;
+}
+
+.home-hero-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 11px;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    font: 500 11.5px Inter, sans-serif;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.home-hero-title {
+    margin: 10px 0 0;
+    font: 500 28px/34px "IBM Plex Sans", sans-serif;
+    letter-spacing: -0.02em;
+    max-width: 920px;
+    text-wrap: pretty;
+}
+
+.home-hero-title-accent {
+    color: #80b8ff;
+}
+
+.home-hero-sub {
+    margin: 10px 0 0;
+    max-width: 820px;
+    font: 400 13.5px/21px Inter, sans-serif;
+    color: rgba(255, 255, 255, 0.78);
+    text-wrap: pretty;
+}
+
+.home-hero-ctas {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 14px;
+    flex-wrap: wrap;
+}
+
+.home-hero-cta {
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 18px;
+    border-radius: 8px;
+    font: 500 13.5px Inter, sans-serif;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.home-hero-cta-primary {
+    background: #0057ff;
+    color: #ffffff;
+    box-shadow: 0 6px 20px -6px rgba(0, 87, 255, 0.8);
+}
+
+.home-hero-cta-primary:hover {
+    background: #1a80ff;
+    color: #ffffff;
+    text-decoration: none;
+}
+
+.home-hero-cta-secondary {
+    border: 1px solid rgba(255, 255, 255, 0.32);
+    color: #ffffff;
+}
+
+.home-hero-cta-secondary:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #ffffff;
+    text-decoration: none;
+}
+
+.home-hero-stats {
+    display: flex;
+    gap: 36px;
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.14);
+    flex-wrap: wrap;
+}
+
+.home-hero-stat {
+    min-width: 130px;
+}
+
+.home-hero-stat-value {
+    font: 600 17px Inter, sans-serif;
+    color: #ffffff;
+}
+
+.home-hero-stat-label {
+    font: 400 11.5px Inter, sans-serif;
+    color: rgba(255, 255, 255, 0.6);
+    margin-top: 2px;
+}
+
+/* =================================================================
+   Outcomes
+   ================================================================= */
+
+.home-outcomes {
+    padding: 32px 48px 16px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.home-outcomes-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.home-outcomes-title {
+    margin: 0;
+    font: 500 24px/30px "IBM Plex Sans", sans-serif;
+    letter-spacing: -0.02em;
+    color: #181c2c;
+}
+
+.home-outcomes-sub {
+    font: 400 13.5px Inter, sans-serif;
+    color: #7c84a1;
+}
+
+.home-outcomes-grid {
+    display: grid;
+    grid-template-columns: 1.55fr 1fr;
+    gap: 18px;
+    margin-top: 18px;
+}
+
+@media (max-width: 980px) {
+    .home-outcomes-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ---------- Tile base ---------- */
+
+.home-tile {
+    position: relative;
+    text-align: left;
+    background: #ffffff;
+    cursor: pointer;
+    font: inherit;
+    color: inherit;
+    border: 0;
+    padding: 0;
+    transition: box-shadow 0.18s ease, transform 0.18s ease, border-color 0.18s ease;
+}
+
+.home-tile:focus-visible {
+    outline: 3px solid rgba(0, 87, 255, 0.35);
+    outline-offset: 3px;
+    border-radius: 12px;
+}
+
+/* ---------- Flagship tile ---------- */
+
+/* Flagship "panel" wrapper. Holds one .home-tile-flagship per
+   scenario; only the one whose data-flagship matches the
+   active selection is visible. Lets the same ship-animate-style
+   shadow ring follow the user's choice instead of being locked
+   to Claims Intake. The [hidden] attribute takes the panel out
+   of layout entirely, so the grid column collapses cleanly. */
+.home-flagship[hidden] {
+    display: none;
+}
+
+.home-tile-flagship {
+    display: flex;
+    gap: 22px;
+    padding: 22px;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px -2px rgba(18, 26, 43, 0.1), 0 2px 4px -2px rgba(18, 26, 43, 0.06), inset 0 0 0 1px #dde0e8;
+    height: 100%;
+}
+
+.home-tile-flagship:hover,
+.home-root[data-active-tile="claims-intake"] .home-flagship[data-flagship="claims-intake"] .home-tile-flagship,
+.home-root[data-active-tile="contract-review"] .home-flagship[data-flagship="contract-review"] .home-tile-flagship,
+.home-root[data-active-tile="invoice-batch"] .home-flagship[data-flagship="invoice-batch"] .home-tile-flagship,
+.home-root[data-active-tile="board-pack"] .home-flagship[data-flagship="board-pack"] .home-tile-flagship {
+    box-shadow: 0 12px 24px -8px rgba(18, 26, 43, 0.18), inset 0 0 0 1px #0057ff;
+    transform: translateY(-1px);
+}
+
+.home-tile-body {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.home-tile-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 9px;
+    border-radius: 4px;
+    font: 600 10.5px Inter, sans-serif;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    align-self: flex-start;
+}
+
+.home-tile-pill-accent {
+    background: #ddeeff;
+    color: #0031b7;
+}
+
+.home-tile-title {
+    margin: 12px 0 0;
+    font: 500 21px/28px "IBM Plex Sans", sans-serif;
+    letter-spacing: -0.01em;
+    color: #181c2c;
+}
+
+.home-tile-desc {
+    margin: 8px 0 0;
+    font: 400 13.5px/21px Inter, sans-serif;
+    color: #424a64;
+    max-width: 460px;
+    text-wrap: pretty;
+}
+
+.home-tile-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 14px;
+}
+
+.home-tile-tag {
+    padding: 4px 9px;
+    border-radius: 4px;
+    background: #f2f3f7;
+    border: 1px solid #dde0e8;
+    font: 500 11px Inter, sans-serif;
+    color: #505875;
+}
+
+.home-tile-action {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-top: 18px;
+    flex-wrap: wrap;
+}
+
+.home-tile-cta {
+    display: inline-flex;
+    align-items: center;
+    padding: 10px 18px;
+    border-radius: 6px;
+    background: #0057ff;
+    color: #ffffff;
+    font: 500 14px Inter, sans-serif;
+    text-decoration: none;
+    transition: background 0.15s ease;
+}
+
+/* Same pill, but rendered as an <a> so it navigates. Inherits
+   the .home-tile-cta visual; the only overrides are to keep
+   the global .home-root a:hover rules from re-coloring the
+   pill on hover/focus. */
+.home-tile-cta-link:hover,
+.home-tile-cta-link:focus,
+.home-tile-cta-link:active {
+    background: #0043db;
+    color: #ffffff;
+    text-decoration: none;
+}
+
+.home-tile-meta {
+    font: 400 13px Inter, sans-serif;
+    color: #7c84a1;
+}
+
+/* Right column packet mock-up inside the flagship tile. */
+
+.home-tile-side {
+    width: 212px;
+    flex: none;
+    border-radius: 8px;
+    background: #f2f3f7;
+    border: 1px solid #dde0e8;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.home-tile-side-label {
+    font: 600 10px Inter, sans-serif;
+    letter-spacing: 0.08em;
+    color: #7c84a1;
+    text-transform: uppercase;
+}
+
+.home-tile-file {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px;
+    border-radius: 5px;
+    background: #ffffff;
+    border: 1px solid #dde0e8;
+}
+
+.home-tile-file-kind {
+    width: 20px;
+    height: 24px;
+    border-radius: 2px;
+    color: #ffffff;
+    font: 700 8px Inter, sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+}
+
+.home-tile-file-text {
+    font: 400 11px Inter, sans-serif;
+    color: #424a64;
+    line-height: 1.3;
+}
+
+.home-tile-file-meta {
+    color: #7c84a1;
+}
+
+.home-tile-file-meta-warn {
+    color: #c28c00;
+    font-weight: 600;
+}
+
+/* ---------- Compact tiles ---------- */
+
+.home-tile-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.home-tile-compact {
+    padding: 18px 20px;
+    border-radius: 10px;
+    background: #ffffff;
+    box-shadow: inset 0 0 0 1px #dde0e8;
+    text-align: left;
+}
+
+.home-tile-compact:hover,
+.home-root[data-active-tile="contract-review"] .home-tile-compact[data-tile="contract-review"],
+.home-root[data-active-tile="invoice-batch"] .home-tile-compact[data-tile="invoice-batch"],
+.home-root[data-active-tile="board-pack"] .home-tile-compact[data-tile="board-pack"] {
+    box-shadow: 0 8px 20px -8px rgba(18, 26, 43, 0.18), inset 0 0 0 1px #0057ff;
+    transform: translateY(-1px);
+}
+
+.home-tile-compact-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.home-tile-compact-title {
+    margin: 0;
+    font: 500 16px "IBM Plex Sans", sans-serif;
+    color: #181c2c;
+}
+
+.home-tile-compact-tags {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex: none;
+}
+
+.home-tile-compact-tag {
+    font: 500 10.5px Inter, sans-serif;
+    color: #7c84a1;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+/* "Coming soon" pill for the three non-ready scenarios.
+   Sits next to the "Recipe" label so the user can see at a
+   glance which cards are preview-only. Amber background to
+   match the warning palette used elsewhere on the home
+   page (notice banner, low-confidence values). */
+.home-tile-compact-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 8px;
+    border-radius: 9999px;
+    background: #fef3c7;
+    color: #c28c00;
+    border: 1px solid #ffda44;
+    font: 600 10px Inter, sans-serif;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.home-tile-compact-desc {
+    margin: 7px 0 0;
+    font: 400 13px/20px Inter, sans-serif;
+    color: #424a64;
+    text-wrap: pretty;
+}
+
+.home-tile-compact-foot {
+    margin-top: 11px;
+    font: 400 11.5px Inter, sans-serif;
+    color: #7c84a1;
+}
+
+.home-tile-blank {
+    padding: 16px 20px;
+    border-radius: 10px;
+    background: #f2f3f7;
+    border: 1px dashed #b5baca;
+}
+
+.home-tile-blank-title {
+    margin: 0;
+    font: 500 15px "IBM Plex Sans", sans-serif;
+    color: #181c2c;
+}
+
+.home-tile-blank-desc {
+    margin: 6px 0 0;
+    font: 400 12.5px/19px Inter, sans-serif;
+    color: #505875;
+}
+
+/* =================================================================
+   Detail panel
+   ================================================================= */
+
+.home-details {
+    margin-top: 16px;
+    border-radius: 12px;
+    background: #ffffff;
+    box-shadow: inset 0 0 0 1px #dde0e8;
+    padding: 20px 24px;
+}
+
+.home-detail[hidden] {
+    display: none;
+}
+
+.home-detail-grid {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr;
+    gap: 24px;
+    align-items: start;
+}
+
+@media (max-width: 980px) {
+    .home-detail-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.home-detail-main {
+    min-width: 0;
+}
+
+.home-detail-eyebrow {
+    display: inline-block;
+    padding: 4px 9px;
+    border-radius: 4px;
+    background: #ddeeff;
+    color: #0031b7;
+    font: 600 10.5px Inter, sans-serif;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.home-detail-eyebrow-soft {
+    background: #f2f3f7;
+    color: #7c84a1;
+}
+
+.home-detail-title {
+    margin: 10px 0 0;
+    font: 500 19px/26px "IBM Plex Sans", sans-serif;
+    letter-spacing: -0.01em;
+    color: #181c2c;
+    text-wrap: pretty;
+}
+
+.home-detail-text {
+    margin: 8px 0 0;
+    font: 400 13.5px/21px Inter, sans-serif;
+    color: #424a64;
+    text-wrap: pretty;
+}
+
+.home-detail-checks {
+    margin: 12px 0 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px 16px;
+}
+
+@media (max-width: 720px) {
+    .home-detail-checks {
+        grid-template-columns: 1fr;
+    }
+}
+
+.home-detail-checks li {
+    position: relative;
+    padding-left: 22px;
+    font: 400 12.5px/18px Inter, sans-serif;
+    color: #30364d;
+}
+
+.home-detail-checks li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 5px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #6da544;
+    box-shadow: inset 0 0 0 3px #dcfce7;
+}
+
+.home-detail-side {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    min-width: 0;
+}
+
+.home-detail-card {
+    padding: 14px 16px;
+    border-radius: 8px;
+    background: #f6f7f9;
+    border: 1px solid #dde0e8;
+}
+
+.home-detail-card-label {
+    font: 600 10.5px Inter, sans-serif;
+    letter-spacing: 0.08em;
+    color: #7c84a1;
+    text-transform: uppercase;
+}
+
+.home-detail-pipeline {
+    margin: 10px 0 0;
+    padding: 0 0 0 20px;
+    font: 400 12.5px/22px Inter, sans-serif;
+    color: #30364d;
+}
+
+.home-detail-pipeline li {
+    padding-left: 2px;
+}
+
+.home-detail-pipeline li::marker {
+    color: #0057ff;
+    font-weight: 700;
+}
+
+.home-detail-files {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    margin-top: 10px;
+    font: 400 12.5px Inter, sans-serif;
+    color: #30364d;
+}
+
+.home-detail-files span {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+}
+
+.home-detail-files i {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 26px;
+    border-radius: 2px;
+    background: #d80027;
+    color: #ffffff;
+    font: 700 8px Inter, sans-serif;
+    font-style: normal;
+    flex: none;
+}
+
+.home-detail-footer {
+    margin-top: 22px;
+    padding-top: 18px;
+    border-top: 1px solid #e8eaf0;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.home-detail-cta {
+    display: inline-flex;
+    align-items: center;
+    padding: 12px 20px;
+    border-radius: 6px;
+    font: 500 14px Inter, sans-serif;
+    cursor: pointer;
+    border: 0;
+    text-decoration: none;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.home-detail-cta-primary {
+    background: #0057ff;
+    color: #ffffff;
+}
+
+.home-detail-cta-primary:hover {
+    background: #0043db;
+    color: #ffffff;
+    text-decoration: none;
+}
+
+.home-detail-cta-disabled {
+    background: #f2f3f7;
+    color: #7c84a1;
+    border: 1px solid #dde0e8;
+    cursor: not-allowed;
+}
+
+.home-detail-foot-meta {
+    font: 400 12.5px Inter, sans-serif;
+    color: #7c84a1;
+}
+
+/* =================================================================
+   Inline "coming soon" notice
+   ================================================================= */
+
+.home-notice {
+    margin-top: 18px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 18px;
+    border-radius: 10px;
+    background: #fffbeb;
+    border: 1px solid #ffda44;
+    color: #5f1616;
+}
+
+.home-notice[hidden] {
+    display: none;
+}
+
+.home-notice-glyph {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #fef3c7;
+    color: #c28c00;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font: 700 14px Inter, sans-serif;
+    flex: none;
+}
+
+.home-notice-text {
+    flex: 1;
+    min-width: 0;
+    font: 400 13px/19px Inter, sans-serif;
+    color: #5f1616;
+}
+
+.home-notice-text strong {
+    display: block;
+    font: 600 13.5px Inter, sans-serif;
+    color: #5f1616;
+    margin-bottom: 2px;
+}
+
+.home-notice-cta {
+    flex: none;
+    padding: 9px 14px;
+    border-radius: 6px;
+    background: #001154;
+    color: #ffffff;
+    font: 500 12.5px Inter, sans-serif;
+    text-decoration: none;
+}
+
+.home-notice-cta:hover {
+    background: #00187a;
+    color: #ffffff;
+    text-decoration: none;
+}
+
+/* =================================================================
+   Built for developer evaluation
+   ================================================================= */
+
+.home-eval {
+    margin: 28px 48px 0;
+    padding: 18px 24px;
+    border-radius: 10px;
+    background: #001154;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    flex-wrap: wrap;
+}
+
+.home-eval-title {
+    font: 500 16px "IBM Plex Sans", sans-serif;
+    color: #ffffff;
+}
+
+.home-eval-sub {
+    margin-top: 4px;
+    font: 400 13px Inter, sans-serif;
+    color: rgba(255, 255, 255, 0.7);
+    max-width: 640px;
+}
+
+.home-eval-ctas {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    font: 500 13px Inter, sans-serif;
+}
+
+.home-eval-chip {
+    padding: 8px 14px;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    color: #ffffff;
+    cursor: default;
+    user-select: none;
+}
+
+.home-eval-chip-strong {
+    background: #ffffff;
+    color: #001154;
+}
+
+.home-foot-spacer {
+    height: 28px;
+}
+
+/* =================================================================
+   Smaller screens
+   ================================================================= */
+
+@media (max-width: 720px) {
+    .home-topnav {
+        padding: 0 20px;
+    }
+
+    .home-topnav-links {
+        display: none;
+    }
+
+    .home-hero {
+        padding: 26px 20px 22px;
+    }
+
+    .home-hero-title {
+        font-size: 26px;
+        line-height: 32px;
+    }
+
+    .home-hero-stats {
+        gap: 24px;
+    }
+
+    .home-outcomes {
+        padding: 36px 20px 16px;
+    }
+
+    .home-tile-flagship {
+        flex-direction: column;
+        padding: 22px;
+    }
+
+    .home-tile-side {
+        width: 100%;
+    }
+
+    .home-details {
+        padding: 22px 18px;
+    }
+
+    .home-eval {
+        margin: 36px 20px 0;
+    }
+}
