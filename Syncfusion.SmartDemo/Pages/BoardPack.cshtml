@@ -1,0 +1,325 @@
+@page "/board-pack"
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+@using Syncfusion.SmartDemo.Services.BoardPack
+@inject BoardPackWorkspaceStore BoardPackStoreForPage
+
+@{
+    Layout = "_Layout";
+    // Prevent CloudFront (and the browser) from caching this HTML page.
+    // The JS and CSS are version-fingerprinted via asp-append-version,
+    // but the HTML itself is NOT fingerprinted — a stale cached copy
+    // would reference old JS/CSS hashes, causing the centre panel to
+    // show blank if the deployed JS version does not match the CSS.
+    // This header is set on the /board-pack route only; shared files
+    // (Program.cs, _Layout.cshtml) are not touched.
+    Response.Headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0";
+    Response.Headers["Pragma"] = "no-cache";
+    var appBasePath = Request.PathBase.Value?.TrimEnd('/') ?? string.Empty;
+    var resourceUrl =
+        $"{Request.Scheme}://{Request.Host}{(string.IsNullOrWhiteSpace(appBasePath) ? string.Empty : appBasePath)}/pdfviewer";
+    var originUrl = $"{Request.Scheme}://{Request.Host}";
+    ViewData["Title"] = "Board Pack Demo";
+}
+
+<!-- ============================================================
+     STYLESHEET LOAD ORDER
+     ============================================================
+     The SHARED layout (_Layout.cshtml head) already loads
+     claim-intake.css. board-pack.css is loaded HERE (in the
+     body) so any board-pack-only styles (`.bp-*`) win over
+     the shared layout rules, mirroring the pattern the
+     claim-intake / contract-review pages use.
+     ============================================================ -->
+<link rel="stylesheet" href="~/css/board-pack.css" asp-append-version="true" />
+
+<!-- Client module owns the workflow state and centre-panel
+     renderer. Mirrors how claim-intake uses
+     wwwroot/js/claimIntake.js as its state owner.
+
+     `defer` lets the browser download the bundle in parallel
+     with parsing the rest of the body and runs it after the
+     document is fully parsed but BEFORE the DOMContentLoaded
+     event. By the time the IIFE runs, the centre panel and
+     packet list containers are in the DOM, so the synchronous
+     first render() call at the end of the IIFE can paint them
+     before the first paint of the body — eliminating the
+     "flash of stale content" the user was reporting. Without
+     `defer` a slow JS download would block the parser. -->
+<script src="~/js/board-pack.js" asp-append-version="true" defer></script>
+
+<!-- ================= Smart Document Solutions HEADER ================= -->
+<div class="smart-doc-header-wrap">
+    <div class="smart-doc-header">
+        <div class="smart-doc-header-brand">
+            <img class="smart-doc-header-glyph" src="~/favicon.ico" asp-append-version="true" alt="" aria-hidden="true" />
+            <span class="smart-doc-header-title">Smart Document Solutions</span>
+            <span class="smart-doc-header-divider" aria-hidden="true">|</span>
+            <span class="smart-doc-header-subtitle">Board Pack</span>
+            <span class="smart-doc-header-divider" aria-hidden="true">&middot;</span>
+            <span class="smart-doc-header-context" id="smart-doc-header-context">
+                Upload Office documents to assemble your Board Pack
+            </span>
+        </div>
+        <div class="smart-doc-header-actions">
+            @* <a href="~/" class="secondary-btn smart-doc-header-back" aria-label="Back to home" title="Back to home">
+                <span class="smart-doc-header-back-glyph" aria-hidden="true">&#x2190;</span>
+                <span>Home</span>
+            </a> *@
+            <button id="resetWorkflowBtn" type="button" class="secondary-btn smart-doc-header-reset" aria-label="Reset workflow">
+                <span class="smart-doc-header-reset-glyph" aria-hidden="true">&#x21bb;</span>
+                <span>Reset</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ================= WORKFLOW STEPPER ================= -->
+<div class="claim-workflow-wrap">
+    <div class="claim-workflow">
+        <div class="claim-workflow-inner">
+            <div class="workflow-steps">
+                <div class="workflow-step" id="step-upload" role="button" tabindex="0" aria-disabled="false" data-href="@originUrl@appBasePath/board-pack?mode=upload">
+                    <div class="workflow-circle">1</div>
+                    <span>Upload</span>
+                </div>
+                <div class="workflow-line" id="line-upload"></div>
+                <div class="workflow-step disabled" id="step-convert" role="button" tabindex="0" aria-disabled="true" data-href="@originUrl@appBasePath/board-pack?mode=convert">
+                    <div class="workflow-circle">2</div>
+                    <span>Convert</span>
+                </div>
+                <div class="workflow-line" id="line-convert"></div>
+                <div class="workflow-step disabled" id="step-pack" role="button" tabindex="0" aria-disabled="true" data-href="@originUrl@appBasePath/board-pack?mode=pack">
+                    <div class="workflow-circle">3</div>
+                    <span>Pack</span>
+                </div>
+                <div class="workflow-line" id="line-pack"></div>
+                <div class="workflow-step disabled" id="step-export" role="button" tabindex="0" aria-disabled="true" data-href="@originUrl@appBasePath/board-pack?mode=export">
+                    <div class="workflow-circle">4</div>
+                    <span>Export</span>
+                </div>
+                <div class="workflow-count" id="workflow-count" aria-live="polite">Step 1 of 4 &middot; Upload</div>
+            </div>
+            <div class="workflow-actions" role="toolbar" aria-label="Workflow actions"></div>
+        </div>
+    </div>
+</div>
+
+<div class="upload-shell">
+    <aside class="upload-panel upload-left">
+        <div class="packet-panel">
+            <div class="packet-panel-header">
+                <span class="section-title">PACKET</span>
+                <button id="addFilesBtn" type="button"
+                        class="add-files-link"
+                        aria-disabled="false"
+                        data-locked="0"
+                        title="Add Word, Excel or PowerPoint documents to the Board Pack">Add files</button>
+                <input id="templateUploadInput" type="file" accept=".docx,.doc,.xlsx,.xls,.pptx,.ppt" hidden multiple />
+            </div>
+            <div class="packet-panel-list" id="packetPanelList" role="list" aria-label="Documents in this Board Pack">
+                <div class="packet-panel-empty">Loading documents...</div>
+            </div>
+        </div>
+
+    </aside>
+
+    <main class="upload-panel upload-center">
+        <div id="centre-panel" data-mode="upload">
+            <div class="bp-upload-header">
+                <div class="bp-upload-file-flow" aria-hidden="true">
+                    <svg class="bp-upload-file-art" width="260" height="120" viewBox="0 0 260 120" fill="none" focusable="false">
+                        <g transform="rotate(-7 27 31)"><rect x="10" y="10" width="34" height="42" rx="4" stroke="#2563EB" stroke-width="2"/><path d="M32 10V18H44" stroke="#2563EB" stroke-width="2"/><rect x="4" y="22" width="21" height="19" rx="4" fill="#2563EB"/><text x="14.5" y="36" font-size="13" font-weight="bold" text-anchor="middle" fill="white">W</text></g>
+                        <g><rect x="75" y="10" width="34" height="42" rx="4" stroke="#22C55E" stroke-width="2"/><path d="M97 10V18H109" stroke="#22C55E" stroke-width="2"/><rect x="69" y="22" width="21" height="19" rx="4" fill="#22C55E"/><text x="79.5" y="36" font-size="13" font-weight="bold" text-anchor="middle" fill="white">X</text></g>
+                        <g><rect x="42" y="65" width="34" height="42" rx="4" stroke="#F97316" stroke-width="2"/><path d="M64 65V73H76" stroke="#F97316" stroke-width="2"/><rect x="36" y="77" width="27" height="19" rx="4" fill="#F97316"/><text x="49.5" y="90.5" font-size="9" font-family="Arial" font-weight="bold" text-anchor="middle" fill="white">PPT</text></g>
+                        <line x1="126" y1="68" x2="168" y2="68" stroke="#2563EB" stroke-width="3" stroke-linecap="round"/><path d="M158 59L170 68L158 77" stroke="#2563EB" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                        <g transform="translate(-31 -15) scale(1.15)"><rect x="190" y="47" width="34" height="42" rx="4" stroke="#EF4444" stroke-width="2"/><path d="M212 47V55H224" stroke="#EF4444" stroke-width="2"/><rect x="184" y="59" width="27" height="19" rx="4" fill="#EF4444"/><text x="197.5" y="72.5" font-size="8" font-family="Arial" font-weight="bold" text-anchor="middle" fill="white">PDF</text></g>
+                    </svg>
+                </div>
+                <div class="bp-upload-header-copy">
+                    <h1>Ready to create your Board Pack</h1>
+                    <p>Convert and merge your documents into one PDF.</p>
+                    <button id="bpContinueConvert" type="button" class="primary-btn bp-upload-cta" disabled aria-disabled="true" data-href="?mode=convert">
+                        Process Board Pack Documents <span aria-hidden="true">&#8594;</span>
+                    </button>
+                    <span class="bp-upload-hint">Loading demo documents&hellip;</span>
+                </div>
+            </div>
+            <div class="bp-upload-contents packet-contents-panel">
+                <div class="packet-contents-title">Packet contents</div>
+                <div class="packet-contents-scroll">
+                    <table class="packet-contents-table">
+                        <thead><tr><th>FILE NAME</th><th>TYPE</th><th>SIZE</th><th>STATUS</th></tr></thead>
+                        <tbody id="bpPacketContentsTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- =============== PDF PREVIEW MODAL =============== -->
+<div id="pdfPreviewModal" class="pdf-preview-modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="pdfPreviewTitle">
+    <div class="pdf-preview-modal-backdrop" data-pdf-preview-close></div>
+    <div class="pdf-preview-modal-shell">
+        <div class="pdf-preview-modal-header">
+            <h2 id="pdfPreviewTitle" class="pdf-preview-modal-title">Preview</h2>
+            <button id="pdfPreviewCloseBtn" type="button" class="pdf-preview-modal-close" data-pdf-preview-close aria-label="Close preview">&times;</button>
+        </div>
+        <div class="pdf-preview-modal-body">
+            <div class="viewer-wrap full-viewer-wrap">
+                <div id="pdfPreviewHost" class="pdf-viewer-host"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- =============== MANIFEST PREVIEW MODAL =============== -->
+<div id="jsonPreviewModal" class="pdf-preview-modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="jsonPreviewTitle">
+    <div class="pdf-preview-modal-backdrop" data-json-preview-close></div>
+    <div class="pdf-preview-modal-shell">
+        <div class="pdf-preview-modal-header">
+            <h2 id="jsonPreviewTitle" class="pdf-preview-modal-title">Audit Manifest</h2>
+            <button id="jsonPreviewCloseBtn" type="button" class="pdf-preview-modal-close" data-json-preview-close aria-label="Close manifest preview">&times;</button>
+        </div>
+        <div class="pdf-preview-modal-body">
+            <pre id="jsonPreviewBody" class="json-preview-body">Loading...</pre>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function () {
+        function activateStep(el) {
+            if (!el) { return; }
+            if (el.getAttribute('aria-disabled') === 'true') { return; }
+            var href = el.getAttribute('data-href');
+            if (!href) { return; }
+            if (window.boardPack) {
+                var match = /[?&]mode=([^&]+)/.exec(href);
+                if (match && window.boardPack.setMode) {
+                    window.boardPack.setMode(match[1]);
+                    return;
+                }
+            }
+            window.location.href = href;
+        }
+
+        function attachStepperHandlers() {
+            document.querySelectorAll('.workflow-step').forEach(function (el) {
+                if (el._activateHandler) { el.removeEventListener('click', el._activateHandler); }
+                var clickHandler = function () { activateStep(el); };
+                el.addEventListener('click', clickHandler);
+                el._activateHandler = clickHandler;
+                el.addEventListener('keydown', function (e) {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        activateStep(el);
+                    }
+                });
+            });
+        }
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', attachStepperHandlers);
+        } else {
+            attachStepperHandlers();
+        }
+
+        document.querySelectorAll('.review-mode-item').forEach(function (button) {
+            button.addEventListener('click', function () {
+                if (button.disabled) { return; }
+                if (button.getAttribute('data-blocked') === '1') { return; }
+                var href = button.getAttribute('data-href') || '';
+                var mode = button.getAttribute('data-mode') || '';
+                if (window.boardPack && window.boardPack.setMode && mode) {
+                    window.boardPack.setMode(mode);
+                    return;
+                }
+                window.location.href = href;
+            });
+        });
+
+        var addBtn = document.getElementById('addFilesBtn');
+        var uploadInput = document.getElementById('templateUploadInput');
+        if (addBtn && uploadInput) {
+            addBtn.addEventListener('click', function () {
+                if (addBtn.disabled) { return; }
+                if (addBtn.getAttribute('data-blocked') === '1') { return; }
+                uploadInput.click();
+            });
+            uploadInput.addEventListener('change', function () {
+                var files = Array.from(uploadInput.files || []);
+                if (!files.length) { return; }
+                if (!window.boardPack || !window.boardPack.pickUploadedFile) {
+                    alert('The page is still loading. Please try again.');
+                    return;
+                }
+                addBtn.disabled = true;
+                addBtn.textContent = 'Uploading...';
+                var chain = Promise.resolve();
+                files.forEach(function (file) {
+                    chain = chain.then(function () {
+                        return window.boardPack.pickUploadedFile(file)
+                            .then(function (doc) { return window.boardPack.addDocument(doc); })
+                            .catch(function (err) {
+                                alert((err && err.message) ? err.message : 'Unable to upload file.');
+                            });
+                    });
+                });
+                chain.then(function () {
+                    uploadInput.value = '';
+                    addBtn.disabled = false;
+                    addBtn.textContent = 'Add files';
+                });
+            });
+        }
+
+        var resetBtn = document.getElementById('resetWorkflowBtn');
+        if (resetBtn) {
+            resetBtn.addEventListener('click', function () {
+                if (window.boardPack && window.boardPack.reset) {
+                    window.boardPack.reset();
+                }
+            });
+        }
+
+        function syncReviewModeActive() {
+            if (!window.boardPack) { return; }
+            var mode = (window.boardPack.state.activeMode || '').toString().toLowerCase();
+            document.querySelectorAll('.review-mode-item').forEach(function (b) {
+                b.classList.toggle('active', b.getAttribute('data-mode') === mode);
+            });
+            var addBtn2 = document.getElementById('addFilesBtn');
+            if (addBtn2) {
+                var canAdd = mode === '' || mode === 'upload';
+                if (canAdd) {
+                    addBtn2.removeAttribute('data-blocked');
+                    addBtn2.removeAttribute('title');
+                    addBtn2.setAttribute('aria-disabled', 'false');
+                } else {
+                    addBtn2.setAttribute('data-blocked', '1');
+                    addBtn2.setAttribute('title', 'Return to the Upload step to add documents to the Board Pack.');
+                    addBtn2.setAttribute('aria-disabled', 'true');
+                }
+            }
+        }
+        if (window.boardPack) {
+            window.boardPack.on && window.boardPack.on('mode-changed', syncReviewModeActive);
+            window.boardPack.on && window.boardPack.on('documents-changed', syncReviewModeActive);
+            syncReviewModeActive();
+        } else {
+            document.addEventListener('DOMContentLoaded', function () {
+                if (window.boardPack && window.boardPack.on) {
+                    window.boardPack.on('mode-changed', syncReviewModeActive);
+                }
+                syncReviewModeActive();
+            });
+        }
+
+        // Manual mode=jump from URL so the demo can be linked from
+        // docs and demos direct to a particular step.
+        var initialMode = (new URLSearchParams(window.location.search)).get('mode');
+        if (initialMode && window.boardPack && window.boardPack.setMode) {
+            window.boardPack.setMode(initialMode);
+        }
+    })();
+</script>

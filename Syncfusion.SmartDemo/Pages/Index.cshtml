@@ -1,0 +1,476 @@
+@page "/"
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Smart Document Solutions";
+    var appBasePath = HttpContextAccessor.HttpContext?.Request.PathBase.Value?.TrimEnd('/') ?? string.Empty;
+}
+
+<link rel="stylesheet" href="~/css/home.css" asp-append-version="true" />
+
+<!--
+    Smart Document Solutions - home page (gallery).
+
+    This is a standalone landing surface that does not depend
+    on the ClaimIntake client module (~/js/claimIntake.js).
+    Behaviour:
+      * Clicking a tile (flagship or compact) only updates
+        the in-page selection state via .home-root's
+        data-active-tile. The flagship card and the detail
+        panel below the cards both swap to show the chosen
+        scenario. No navigation, no server round-trip.
+      * Navigation to a workspace is intentionally EXPLICIT:
+        the user must click the "Open workspace" link inside
+        the flagship tile, or the "Open ... workspace &rarr;"
+        CTA in the detail-panel footer. Today those CTAs
+        point at /claim-intake and /contract-review.
+      * Tiles that have no live workspace yet (Invoice
+        batch, Board pack) keep the disabled CTA in the
+        detail footer.
+-->
+<div class="home-root" data-active-tile="">
+    <!-- =============== TOP NAV =============== -->
+    <header class="home-topnav">
+        <div class="home-topnav-inner">
+            <div class="home-topnav-brand">
+                <div class="home-topnav-mark" aria-hidden="true">
+                    <img class="smart-doc-header-glyph" src="~/favicon.ico" alt="" asp-append-version="true" />
+                </div>
+                <span class="home-topnav-name">Syncfusion</span>
+            </div>
+            <nav class="home-topnav-links" aria-label="Primary">
+                <a href="https://www.syncfusion.com/document-sdk" target="_blank" rel="noopener" class="home-topnav-link">Document SDK</a>
+                <a href="https://help.syncfusion.com/document-processing/ai-tools/ai-powered-development" target="_blank" rel="noopener" class="home-topnav-link">AI Tools</a>
+                <a href="https://help.syncfusion.com/document-processing/introduction" target="_blank" rel="noopener" class="home-topnav-link">Docs</a>
+            </nav>
+            <div class="home-topnav-actions">    
+                <a href=" https://github.com/SyncfusionExamples/smart-document-solutions-demo" target="_blank" rel="noopener" class="home-topnav-link home-topnav-link-muted">GitHub</a>
+                <a href="https://www.syncfusion.com/downloads" target="_blank" rel="noopener" class="home-topnav-cta">Free trial</a>
+
+            </div>
+        </div>
+    </header>
+
+    <!-- =============== HERO =============== -->
+    <section class="home-hero">
+        <div class="home-hero-grid" aria-hidden="true"></div>
+        <div class="home-hero-glow" aria-hidden="true"></div>
+        <div class="home-hero-inner">
+            <span class="home-hero-eyebrow">Document Solutions Showcase</span>
+            <h1 class="home-hero-title">
+                Upload documents in. <span class="home-hero-title-accent">Business-ready data out.</span>
+            </h1>
+            <p class="home-hero-sub">
+                Smart Document Solutions streamlines document-heavy workflows by turning claim packets, contracts,
+                invoices, and reports into structured, validated, business-ready data. Upload mixed document types,
+                describe the outcome you need, and watch Syncfusion&rsquo;s document libraries perform OCR, extraction,
+                redaction, and export &mdash; every step inspectable, every irreversible action confirmed.
+                AI-powered sensitive data detection identifies and securely redacts confidential information, enabling
+                safer document handling while reducing manual effort.
+            </p>
+            <div class="home-hero-ctas">
+                <a href="#home-outcomes" class="home-hero-cta home-hero-cta-primary">Pick an outcome &rarr;</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- =============== START WITH AN OUTCOME =============== -->
+    <section id="home-outcomes" class="home-outcomes">
+        <div class="home-outcomes-head">
+            <h2 class="home-outcomes-title">Start with an outcome</h2>
+            <span class="home-outcomes-sub">Pick a recipe to see what gets produced &middot; Claim Intake opens the full workspace</span>
+        </div>
+
+        <div class="home-outcomes-grid" role="radiogroup" aria-label="Document scenarios">
+            <!-- ============================================================
+                 Flagship column.
+
+                 Each scenario owns its own .home-flagship panel; only
+                 the one whose data-flagship matches the active choice
+                 is shown. The inner <button> still carries the
+                 data-tile attributes so the existing click/keyboard
+                 wiring in the inline script keeps working unchanged.
+                 ============================================================ -->
+            <div class="home-flagship" data-flagship="claims-intake">
+                <button type="button"
+                        class="home-tile home-tile-flagship"
+                        data-tile="claims-intake"
+                        role="radio"
+                        aria-checked="false">
+                    <div class="home-tile-body">
+                        <span class="home-tile-pill home-tile-pill-accent">Flagship scenario</span>
+                        <h3 class="home-tile-title">Claims intake &rarr; reviewed case package</h3>
+                        <p class="home-tile-desc">
+                            Two files: a scanned insurance claim form, a property claim. The document is loaded into the PDF Viewer, processed for data extraction, and queued for review, redaction, and packaging. AI-powered sensitive data detection identifies confidential information for secure redaction, while the progress bar at the top of the page provides real-time visibility into each stage of the process.
+                        </p>
+                        <div class="home-tile-tags">
+                            <span class="home-tile-tag">OCR</span>
+                            <span class="home-tile-tag">Extraction</span>
+                            <span class="home-tile-tag">Confidence review</span>
+                            <span class="home-tile-tag">Redaction</span>
+                            <span class="home-tile-tag">PDF package</span>
+                        </div>
+                        <div class="home-tile-action">
+                            <a href="@(appBasePath + "/claim-intake")" class="home-tile-cta home-tile-cta-link" data-tile-link="claims-intake">Open workspace</a>
+                        </div>
+                    </div>
+                    <div class="home-tile-side" aria-hidden="true">
+                        <div class="home-tile-side-label">Packet</div>
+                        <div class="home-tile-file">
+                            <span class="home-tile-file-kind" style="background:#d80027">PDF</span>
+                            <div class="home-tile-file-text">
+                                Insurance claim<br>
+                                <span class="home-tile-file-meta-warn">scanned &middot; OCR</span>
+                            </div>
+                        </div>
+                        <div class="home-tile-file">
+                            <span class="home-tile-file-kind" style="background:#d80027">PDF</span>
+                            <div class="home-tile-file-text">
+                                Property claim<br>
+                                <span class="home-tile-file-meta">1 page</span>
+                            </div>
+                        </div>
+                    </div>
+                </button>
+            </div>
+
+            <div class="home-flagship" data-flagship="contract-review" hidden>
+                <button type="button"
+                        class="home-tile home-tile-flagship"
+                        data-tile="contract-review"
+                        role="radio"
+                        aria-checked="false">
+                    <div class="home-tile-body">
+                        <span class="home-tile-pill home-tile-pill-accent">Flagship scenario</span>
+                        <h3 class="home-tile-title">Contract review &rarr; clean, revised PDF</h3>
+                        <p class="home-tile-desc">
+                            Two versions of a contract, lined up by DOCX Editor compare. Negotiate each edit with
+                            track-changes, accept or reject inline, and export a final clean PDF &mdash; or a
+                            redline report for legal.
+                        </p>
+                        <div class="home-tile-tags">
+                            <span class="home-tile-tag">Word compare</span>
+                            <span class="home-tile-tag">Track changes</span>
+                            <span class="home-tile-tag">Accept / reject</span>
+                            <span class="home-tile-tag">AI summary</span>
+                            <span class="home-tile-tag">PDF export</span>
+                        </div>
+                        <div class="home-tile-action">
+                            <a href="@(appBasePath + "/contract-review")" class="home-tile-cta home-tile-cta-link" data-tile-link="contract-review">Open workspace</a>
+                        </div>
+                    </div>
+                    <div class="home-tile-side" aria-hidden="true">
+                        <div class="home-tile-side-label">Packet</div>
+                        <div class="home-tile-file">
+                            <span class="home-tile-file-kind" style="background:#0052b4">DOC</span>
+                            <div class="home-tile-file-text">
+                                Contract v1 (base)<br>
+                                <span class="home-tile-file-meta">2 pages</span>
+                            </div>
+                        </div>
+                        <div class="home-tile-file">
+                            <span class="home-tile-file-kind" style="background:#0052b4">DOC</span>
+                            <div class="home-tile-file-text">
+                                Contract v2 (revised)<br>
+                                <span class="home-tile-file-meta">2 pages</span>
+                            </div>
+                        </div>
+                    </div>
+                </button>
+            </div>
+
+            <!-- <div class="home-flagship" data-flagship="invoice-batch" hidden>
+                <button type="button"
+                        class="home-tile home-tile-flagship"
+                        data-tile="invoice-batch"
+                        role="radio"
+                        aria-checked="false">
+                    <div class="home-tile-body">
+                        <span class="home-tile-pill home-tile-pill-accent">Flagship scenario</span>
+                        <h3 class="home-tile-title">Invoice batch &rarr; approval workbook</h3>
+                        <p class="home-tile-desc">
+                            A folder of mixed invoices: SmartTableExtractor pulls every line item, XlsIO assembles an
+                            approval workbook with totals and variances, and a single click exports a CSV for the
+                            finance system.
+                        </p>
+                        <div class="home-tile-tags">
+                            <span class="home-tile-tag">Batch OCR</span>
+                            <span class="home-tile-tag">Table extraction</span>
+                            <span class="home-tile-tag">Normalize</span>
+                            <span class="home-tile-tag">Dedupe</span>
+                            <span class="home-tile-tag">Variance flags</span>
+                            <span class="home-tile-tag">XLS export</span>
+                            <span class="home-tile-tag">CSV export</span>
+                        </div>
+                        <div class="home-tile-action">
+                            <span class="home-tile-cta">Open workspace</span>
+                            <span class="home-tile-meta">Recipe preview &middot; full workspace coming soon</span>
+                        </div>
+                    </div>
+                    <div class="home-tile-side" aria-hidden="true">
+                        <div class="home-tile-side-label">Packet</div>
+                        <div class="home-tile-file">
+                            <span class="home-tile-file-kind" style="background:#d80027">PDF</span>
+                            <div class="home-tile-file-text">
+                                Invoice 001<br>
+                                <span class="home-tile-file-meta-warn">scanned &middot; OCR</span>
+                            </div>
+                        </div>
+                        <div class="home-tile-file">
+                            <span class="home-tile-file-kind" style="background:#d80027">PDF</span>
+                            <div class="home-tile-file-text">
+                                Invoice 002<br>
+                                <span class="home-tile-file-meta">2 pages</span>
+                            </div>
+                        </div>
+                        <div class="home-tile-file">
+                            <span class="home-tile-file-kind" style="background:#1a7a4a">XLS</span>
+                            <div class="home-tile-file-text">
+                                Approval workbook<br>
+                                <span class="home-tile-file-meta">generated</span>
+                            </div>
+                        </div>
+                        <div class="home-tile-file">
+                            <span class="home-tile-file-kind" style="background:#1a7a4a">CSV</span>
+                            <div class="home-tile-file-text">
+                                Line-item export<br>
+                                <span class="home-tile-file-meta">for finance</span>
+                            </div>
+                        </div>
+                    </div>
+                </button>
+            </div> -->
+
+            <div class="home-flagship" data-flagship="board-pack" hidden>
+                <button type="button"
+                        class="home-tile home-tile-flagship"
+                        data-tile="board-pack"
+                        data-href="/board-pack"
+                        data-ready="true"
+                        role="radio"
+                        aria-checked="false">
+                    <div class="home-tile-body">
+                        <span class="home-tile-pill home-tile-pill-accent">Flagship scenario</span>
+                        <h3 class="home-tile-title">Board pack &rarr; merged PDF</h3>
+                        <p class="home-tile-desc">
+                            Drop the Excel financial performance, the Word reports, and the PowerPoint deck. Syncfusion converts
+                            each to PDF, adds bookmarks per file, and merges into single PDF, a zip, a JSON audit manifest.
+                        </p>
+                        <div class="home-tile-tags">
+                            <span class="home-tile-tag">Excel &rarr; PDF</span>
+                            <span class="home-tile-tag">Word &rarr; PDF</span>
+                            <span class="home-tile-tag">PowerPoint &rarr; PDF</span>
+                            <span class="home-tile-tag">Bookmarks</span>
+                            <span class="home-tile-tag">Merge</span>
+                            <span class="home-tile-tag">Password protect</span>
+                        </div>
+                        <div class="home-tile-action">
+                            <a href="@(appBasePath + "/board-pack")" class="home-tile-cta home-tile-cta-link" data-tile-link="board-pack">Open workspace</a>
+                        </div>
+                    </div>
+                    <div class="home-tile-side" aria-hidden="true">
+                        <div class="home-tile-side-label">Packet</div>
+                        
+                        <div class="home-tile-file">
+                            <span class="home-tile-file-kind" style="background:#0052b4">DOC</span>
+                            <div class="home-tile-file-text">
+                                Board Report<br>
+                                <span class="home-tile-file-meta">2 pages</span>
+                            </div>
+                        </div>
+                        <div class="home-tile-file">
+                            <span class="home-tile-file-kind" style="background:#1a7a4a">XLS</span>
+                            <div class="home-tile-file-text">
+                                Financial Performance<br>
+                                <span class="home-tile-file-meta">2 sheets</span>
+                            </div>
+                        </div>
+                        <div class="home-tile-file">
+                            <span class="home-tile-file-kind" style="background:#c43e1c">PPT</span>
+                            <div class="home-tile-file-text">
+                                Board Performance<br>
+                                <span class="home-tile-file-meta">2 slides</span>
+                            </div>
+                        </div>
+                    </div>
+                </button>
+            </div>
+
+            <div class="home-tile-stack">
+                <button type="button"
+                        class="home-tile home-tile-compact"
+                        data-tile="claims-intake"
+                        role="radio"
+                        aria-checked="false">
+                    <div class="home-tile-compact-head">
+                        <h4 class="home-tile-compact-title">Claims intake</h4>
+                        <div class="home-tile-compact-tags">
+                            <span class="home-tile-compact-tag">Flagship</span>
+                            <span class="home-tile-compact-badge home-tile-compact-badge-live">Live</span>
+                        </div>
+                    </div>
+                    <p class="home-tile-compact-desc">OCR, extract, review and redact a claim packet. End with searchable redacted PDF.</p>
+                    <div class="home-tile-compact-foot">OCR &middot; Extraction &middot; Confidence review &middot; Redaction</div>
+                </button>
+
+                <button type="button"
+                        class="home-tile home-tile-compact"
+                        data-tile="contract-review"
+                        role="radio"
+                        aria-checked="false">
+                    <div class="home-tile-compact-head">
+                        <h4 class="home-tile-compact-title">Contract review</h4>
+                        <div class="home-tile-compact-tags">
+                            <span class="home-tile-compact-tag">Flagship</span>
+                            <span class="home-tile-compact-badge home-tile-compact-badge-live">Live</span>
+                        </div>
+                    </div>
+                    <p class="home-tile-compact-desc">Compare versions, inspect revisions, summarize terms, export final PDF.</p>
+                    <div class="home-tile-compact-foot">Word compare &middot; Track changes &middot; PDF export</div>
+                </button>
+
+                <!-- <button type="button"
+                        class="home-tile home-tile-compact"
+                        data-tile="invoice-batch"
+                        role="radio"
+                        aria-checked="false">
+                    <div class="home-tile-compact-head">
+                        <h4 class="home-tile-compact-title">Invoice batch</h4>
+                        <div class="home-tile-compact-tags">
+                            <span class="home-tile-compact-tag">Recipe</span>
+                            <span class="home-tile-compact-badge">Coming soon</span>
+                        </div>
+                    </div>
+                    <p class="home-tile-compact-desc">Extract line items and create an approval workbook.</p>
+                    <div class="home-tile-compact-foot">OCR &middot; Table extraction &middot; Spreadsheet</div>
+                </button> -->
+
+                <button type="button"
+                        class="home-tile home-tile-compact"
+                        data-tile="board-pack"
+                        data-href="/board-pack"
+                        data-ready="true"
+                        role="radio"
+                        aria-checked="false">
+                    <div class="home-tile-compact-head">
+                        <h4 class="home-tile-compact-title">Board pack</h4>
+                        <div class="home-tile-compact-tags">
+                            <span class="home-tile-compact-tag">Flagship</span>
+                            <span class="home-tile-compact-badge home-tile-compact-badge-live">Live</span>
+                        </div>
+                    </div>
+                    <p class="home-tile-compact-desc">Assemble an Excel, Word, and PowerPoint packet as bookmarked, password-protected PDF.</p>
+                    <div class="home-tile-compact-foot">Office Conversion &middot; Merge &middot; Bookmarks &middot; Watermarks</div>
+                </button>
+            </div>
+        </div>
+    </section>
+
+   
+    <div class="home-foot-spacer" aria-hidden="true"></div>
+</div>
+
+<script>
+    (function () {
+        // ------------------------------------------------------------------
+        // Home page - tile selection.
+        //
+        // Behaviour:
+        //   * Click a tile -> update the root data-active-tile
+        //     attribute (CSS handles the visual selection ring),
+        //     show the matching flagship panel, and show the
+        //     matching detail panel. No navigation.
+        //   * Navigation to a workspace is handled by the
+        //     explicit "Open workspace" anchor inside the tile
+        //     body, and by the "Open ... workspace &rarr;" CTA
+        //     in the detail-panel footer. The tile <button>
+        //     never navigates, so clicking anywhere outside
+        //     the explicit CTA simply selects the scenario.
+        //
+        // The script is intentionally small and self-contained
+        // so the home page does not depend on the Claim Intake
+        // client module (~ 2500 lines of stateful code that
+        // we do not want to load on the gallery).
+        //
+        // First we tag <body> with the .home-page class. The
+        // global stylesheet pins <body> to overflow:hidden so
+        // the Claim Intake workflow never manages page scroll;
+        // that breaks the home page. We pair the body class
+        // with a :has() selector in home.css so modern
+        // browsers always get the override, and the JS class
+        // is a safety net for browsers without :has().
+        // ------------------------------------------------------------------
+        document.body.classList.add('home-page');
+
+        var root = document.querySelector('.home-root');
+        if (!root) { return; }
+        var tiles = Array.prototype.slice.call(root.querySelectorAll('.home-tile'));
+        var details = Array.prototype.slice.call(root.querySelectorAll('.home-detail'));
+        var flagships = Array.prototype.slice.call(root.querySelectorAll('.home-flagship'));
+
+        function setActive(tile) {
+            if (!tile) { return; }
+            var key = tile.getAttribute('data-tile') || '';
+
+            // Update the root state + visual selection.
+            root.setAttribute('data-active-tile', key);
+            tiles.forEach(function (t) {
+                t.setAttribute('aria-checked', t === tile ? 'true' : 'false');
+            });
+
+            // Show the matching flagship panel, hide the rest. The
+            // flagship tile now has one variant per scenario so the
+            // (currently large) left card always reflects the user's
+            // selection without keeping Claims Intake pinned.
+            flagships.forEach(function (f) {
+                var matches = f.getAttribute('data-flagship') === key;
+                if (matches) { f.removeAttribute('hidden'); }
+                else { f.setAttribute('hidden', ''); }
+            });
+
+            // Show the matching detail panel, hide the rest.
+            details.forEach(function (d) {
+                var matches = d.getAttribute('data-detail') === key;
+                if (matches) { d.removeAttribute('hidden'); }
+                else { d.setAttribute('hidden', ''); }
+            });
+            // Selection only - never navigate from here. The
+            // explicit "Open workspace" anchors inside the
+            // tile body and the detail-panel footer are the
+            // sole navigation triggers.
+        }
+
+        tiles.forEach(function (tile) {
+            tile.addEventListener('click', function (event) {
+                // <a> children inside the detail footer are
+                // responsible for the actual navigation; we
+                // do not want to swallow their click.
+                if (event.target.closest && event.target.closest('a')) {
+                    return;
+                }
+                event.preventDefault();
+                setActive(tile);
+            });
+
+            tile.addEventListener('keydown', function (event) {
+                if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    setActive(tile);
+                }
+            });
+        });
+
+        // Default selection: Claims Intake so the detail panel
+        // is populated on first paint without forcing the user
+        // to click a card. Selection is pure visual state;
+        // the user must click an explicit "Open workspace"
+        // anchor to navigate to a workspace.
+        var defaultTile = root.querySelector('[data-tile="claims-intake"]');
+        if (defaultTile) {
+            // Mark as selected visually without triggering a
+            // navigation side effect.
+            root.setAttribute('data-active-tile', 'claims-intake');
+            defaultTile.setAttribute('aria-checked', 'true');
+        }
+    })();
+</script>
