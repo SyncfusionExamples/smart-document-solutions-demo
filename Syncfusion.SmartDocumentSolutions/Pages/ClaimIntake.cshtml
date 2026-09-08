@@ -1,0 +1,330 @@
+@page "/claim-intake"
+@using Syncfusion.SmartDocumentSolutions.Models
+@using Syncfusion.SmartDocumentSolutions.Services
+@inject PerSessionFileStore FileStoreForPage
+
+@{
+    Layout = "_Layout";
+    var appBasePath = Request.PathBase.Value?.TrimEnd('/') ?? string.Empty;
+    var resourceUrl =
+        $"{Request.Scheme}://{Request.Host}{(string.IsNullOrWhiteSpace(appBasePath) ? string.Empty : appBasePath)}/pdfviewer";
+    var originUrl = $"{Request.Scheme}://{Request.Host}";
+    ViewData["Title"] = "Claim Intake";
+}
+
+<!-- Load the client-side state owner. This script owns the
+     packet (file list, extracted fields, redaction status,
+     active mode) in localStorage and renders the centre
+     panel + the packet list from the same state. The server
+     is just a pipeline runner - see
+     .codestudio/workflows/current/artifacts/spec.md. -->
+<script src="~/js/claimIntake.js" asp-append-version="true"></script>
+
+<!-- ================= Smart Document Solutions HEADER ================= -->
+<div class="smart-doc-header-wrap">
+    <div class="smart-doc-header">
+        <div class="smart-doc-header-brand">
+            <img class="smart-doc-header-glyph" src="~/favicon.ico" asp-append-version="true" alt="" aria-hidden="true" />
+            <span class="smart-doc-header-title">Smart Document Solutions</span>
+            <span class="smart-doc-header-divider" aria-hidden="true">|</span>
+            <span class="smart-doc-header-subtitle">Claims intake</span>
+            <span class="smart-doc-header-divider" aria-hidden="true">&middot;</span>
+            <span class="smart-doc-header-context" id="smart-doc-header-context">
+                Select a file from the packet to begin
+            </span>
+        </div>
+        <div class="smart-doc-header-actions">
+            @* <a href="~/" class="secondary-btn smart-doc-header-back" aria-label="Back to home" title="Back to home">
+                <span class="smart-doc-header-back-glyph" aria-hidden="true">&#x2190;</span>
+                <span>Home</span>
+            </a> *@
+            <button id="resetWorkflowBtn" type="button" class="secondary-btn smart-doc-header-reset" aria-label="Reset workflow">
+                <span class="smart-doc-header-reset-glyph" aria-hidden="true">&#x21bb;</span>
+                <span>Reset</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ================= WORKFLOW STEPPER ================= -->
+<!-- The stepper, the workflow circles, the connecting lines,
+     and the completion count are all rendered by the client
+     module on boot and re-painted on every state change. The
+     server only provides the static markup; the JS rewrites
+     the dynamic state. -->
+<div class="claim-workflow-wrap">
+    <div class="claim-workflow">
+        <div class="claim-workflow-inner">
+            <div class="workflow-steps">
+                <div class="workflow-step" id="step-choose" role="button" tabindex="0" aria-disabled="false" data-href="@originUrl@appBasePath/claim-intake?mode=choose">
+                    <div class="workflow-circle">1</div>
+                    <span>Choose</span>
+                </div>
+                <div class="workflow-line" id="line-choose"></div>
+                <div class="workflow-step disabled" id="step-view" role="button" tabindex="0" aria-disabled="true" data-href="@originUrl@appBasePath/claim-intake?mode=view">
+                    <div class="workflow-circle">2</div>
+                    <span>View</span>
+                </div>
+                <div class="workflow-line" id="line-view"></div>
+                <div class="workflow-step disabled" id="step-extract" role="button" tabindex="0" aria-disabled="true" data-href="@originUrl@appBasePath/claim-intake?mode=review">
+                    <div class="workflow-circle">3</div>
+                    <span>Extract</span>
+                </div>
+                <div class="workflow-line" id="line-extract"></div>
+                <div class="workflow-step disabled" id="step-review" role="button" tabindex="0" aria-disabled="true" data-href="@originUrl@appBasePath/claim-intake?mode=review">
+                    <div class="workflow-circle">4</div>
+                    <span>Review</span>
+                </div>
+                <div class="workflow-line" id="line-review"></div>
+                <div class="workflow-step disabled" id="step-redact" role="button" tabindex="0" aria-disabled="true" data-href="@originUrl@appBasePath/claim-intake?mode=redact">
+                    <div class="workflow-circle">5</div>
+                    <span>Redact</span>
+                </div>
+                <div class="workflow-line" id="line-redact"></div>
+                <div class="workflow-step disabled" id="step-final" role="button" tabindex="0" aria-disabled="true" data-href="@originUrl@appBasePath/claim-intake?mode=final">
+                    <div class="workflow-circle">6</div>
+                    <span>Package</span>
+                </div>
+                <div class="workflow-count" id="workflow-count">0 of 6 steps complete</div>
+            </div>
+            <div class="workflow-actions" role="toolbar" aria-label="Workflow actions"></div>
+        </div>
+    </div>
+</div>
+<!-- =============== END WORKFLOW STEPPER =============== -->
+
+<div class="upload-shell">
+    <aside class="upload-panel upload-left">
+        <div class="packet-panel">
+            <div class="packet-panel-header">
+                <span class="section-title">PACKET</span>
+                <button id="addFilesBtn" type="button"
+                        class="add-files-link"
+                        aria-disabled="false"
+                        data-locked="0"
+                        title="Upload additional claim documents to the packet">Add files</button>
+                <input id="templateUploadInput" type="file" accept=".pdf,.png,.jpg,.jpeg" hidden />
+            </div>
+            <div class="packet-panel-list" id="packetPanelList" role="list" aria-label="Documents in this packet">
+                <div class="packet-panel-empty">Loading documents...</div>
+            </div>
+        </div>
+
+        <div class="review-mode-panel">
+            <div class="section-title">REVIEW MODES</div>
+            <div class="review-mode-list" role="navigation" aria-label="Review modes">
+                <button class="review-mode-item" type="button" data-href="@originUrl@appBasePath/claim-intake?mode=choose" data-mode="choose">
+                    <span class="mode-icon">&#x25A3;</span>
+                    <span class="mode-label">Workspace home</span>
+                </button>
+                <button class="review-mode-item" type="button" data-href="@originUrl@appBasePath/claim-intake?mode=view" data-mode="view">
+                    <span class="mode-icon">&#x25A4;</span>
+                    <span class="mode-label">Document viewer</span>
+                </button>
+                <button class="review-mode-item" type="button" data-href="@originUrl@appBasePath/claim-intake?mode=review" data-mode="review">
+                    <span class="mode-icon">&#x25A8;</span>
+                    <span class="mode-label">Extraction review</span>
+                </button>
+                <button class="review-mode-item" type="button" data-href="@originUrl@appBasePath/claim-intake?mode=redact" data-mode="redact">
+                    <span class="mode-icon">&mdash;</span>
+                    <span class="mode-label">Redaction studio</span>
+                </button>
+                <button class="review-mode-item" type="button" data-href="@originUrl@appBasePath/claim-intake?mode=final" data-mode="final">
+                    <span class="mode-icon">&#x21A7;</span>
+                    <span class="mode-label">Output center</span>
+                </button>
+            </div>
+        </div>
+    </aside>
+
+    <main class="upload-panel upload-center">
+        <!-- The centre panel. The client module re-renders the
+             contents of this div on every state change. The
+             initial server-rendered content is a benign empty
+             Choose view so the page has something visible even
+             before the JS boots. -->
+        <div id="centre-panel" data-mode="choose">
+            <div class="center-header">
+                <div>
+                    <p class="section-title">Claim Intake Demo</p>
+                    <h1></h1>
+                    <p class="landing-intro">
+                        Experience a smart claims processing solution that converts unstructured claim documents into structured, business-ready data. Extract, review, and refine information, then use AI-powered sensitive data detection to identify and redact confidential content before packaging the final output.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- =============== PDF PREVIEW MODAL =============== -->
+<!-- Single, page-scoped modal host. The client module mounts
+     a Syncfusion PDF Viewer into #pdfPreviewHost on demand
+     (see openPdfPreviewModal in claimIntake.js). The modal
+     is hidden by default; toggled via the .is-open class
+     from JS. One host is shared by every Preview button so
+     we never accumulate EJ2 viewer instances. -->
+<div id="pdfPreviewModal" class="pdf-preview-modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="pdfPreviewTitle">
+    <div class="pdf-preview-modal-backdrop" data-pdf-preview-close></div>
+    <div class="pdf-preview-modal-shell">
+        <div class="pdf-preview-modal-header">
+            <h2 id="pdfPreviewTitle" class="pdf-preview-modal-title">Preview</h2>
+            <button id="pdfPreviewCloseBtn" type="button" class="pdf-preview-modal-close" data-pdf-preview-close aria-label="Close preview">&times;</button>
+        </div>
+        <div class="pdf-preview-modal-body">
+            <div class="viewer-wrap full-viewer-wrap">
+                <div id="pdfPreviewHost" class="pdf-viewer-host"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Wire up the static UI affordances that the client
+    // module does not own. The stepper circles, the review
+    // mode buttons, and the "Add files" link all live in the
+    // server-rendered markup; the JS module re-paints their
+    // visual state but the click handlers stay here.
+    (function () {
+        function activateStep(el) {
+            if (!el) { return; }
+            if (el.getAttribute('aria-disabled') === 'true') { return; }
+            var href = el.getAttribute('data-href');
+            if (!href) { return; }
+            if (window.claimIntake) {
+                // Internal navigation: update the in-memory
+                // mode and let the client re-render. Avoid a
+                // full page reload so the Syncfusion PDF
+                // viewer keeps its state.
+                var match = /[?&]mode=([^&]+)/.exec(href);
+                if (match && window.claimIntake.setMode) {
+                    window.claimIntake.setMode(match[1]);
+                    return;
+                }
+            }
+            window.location.href = href;
+        }
+
+        function attachStepperHandlers() {
+            document.querySelectorAll('.workflow-step').forEach(function (el) {
+                if (el._activateHandler) { el.removeEventListener('click', el._activateHandler); }
+                var clickHandler = function () { activateStep(el); };
+                el.addEventListener('click', clickHandler);
+                el._activateHandler = clickHandler;
+                el.addEventListener('keydown', function (e) {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        activateStep(el);
+                    }
+                });
+            });
+        }
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', attachStepperHandlers);
+        } else {
+            attachStepperHandlers();
+        }
+
+        // Review mode list: same pattern as the stepper.
+        document.querySelectorAll('.review-mode-item').forEach(function (button) {
+            button.addEventListener('click', function () {
+                // Blocked-by-workflow state set by
+                // renderSidebarModes() in claimIntake.js when
+                // the user has not yet reached the target
+                // step (e.g. clicking Redaction Studio on
+                // the Review page). The visual stays
+                // unchanged - only navigation is blocked.
+                if (button.disabled) { return; }
+                if (button.getAttribute('data-blocked') === '1') { return; }
+                var href = button.getAttribute('data-href') || '';
+                var mode = button.getAttribute('data-mode') || '';
+                if (window.claimIntake && window.claimIntake.setMode && mode) {
+                    window.claimIntake.setMode(mode);
+                    return;
+                }
+                window.location.href = href;
+            });
+        });
+
+        // Add files affordance + reset button.
+        var addBtn = document.getElementById('addFilesBtn');
+        var uploadInput = document.getElementById('templateUploadInput');
+        if (addBtn && uploadInput) {
+            addBtn.addEventListener('click', function () {
+                if (addBtn.disabled) { return; }
+                if (addBtn.getAttribute('data-blocked') === '1') { return; }
+                uploadInput.click();
+            });
+            uploadInput.addEventListener('change', function () {
+                var files = Array.from(uploadInput.files || []);
+                if (!files.length) { return; }
+                if (!window.claimIntake || !window.claimIntake.pickUploadedFile) {
+                    alert('The page is still loading. Please try again.');
+                    return;
+                }
+                addBtn.disabled = true;
+                addBtn.textContent = 'Uploading...';
+                var firstFile = files[0];
+                window.claimIntake.pickUploadedFile(firstFile)
+                    .then(function (doc) {
+                        window.claimIntake.addDocument(doc);
+                        window.claimIntake.setActiveDocument(doc.previewUrl);
+                    })
+                    .catch(function (err) {
+                        alert((err && err.message) ? err.message : 'Unable to upload file.');
+                    })
+                    .then(function () {
+                        uploadInput.value = '';
+                        addBtn.disabled = false;
+                        addBtn.textContent = 'Add files';
+                    });
+            });
+        }
+
+        var resetBtn = document.getElementById('resetWorkflowBtn');
+        if (resetBtn) {
+            resetBtn.addEventListener('click', function () {
+                if (window.claimIntake && window.claimIntake.reset) {
+                    window.claimIntake.reset();
+                }
+            });
+        }
+
+        // After the client module boots, repaint the
+        // "review-mode-active" class on the sidebar so the
+        // user sees which step they are on.
+        function syncReviewModeActive() {
+            if (!window.claimIntake) { return; }
+            var mode = (window.claimIntake.state.activeMode || '').toString().toLowerCase();
+            document.querySelectorAll('.review-mode-item').forEach(function (b) {
+                b.classList.toggle('active', b.getAttribute('data-mode') === mode);
+            });
+
+            var addBtn2 = document.getElementById('addFilesBtn');
+            if (addBtn2) {
+                var canAdd = mode === '' || mode === 'choose';
+                if (canAdd) {
+                    addBtn2.removeAttribute('data-blocked');
+                    addBtn2.removeAttribute('title');
+                    addBtn2.setAttribute('aria-disabled', 'false');
+                } else {
+                    addBtn2.setAttribute('data-blocked', '1');
+                    addBtn2.setAttribute('title', 'Return to the Workspace home to add files to the packet.');
+                    addBtn2.setAttribute('aria-disabled', 'true');
+                }
+            }
+        }
+        if (window.claimIntake) {
+            window.claimIntake.on && window.claimIntake.on('mode-changed', syncReviewModeActive);
+            window.claimIntake.on && window.claimIntake.on('active-changed', syncReviewModeActive);
+            syncReviewModeActive();
+        } else {
+            document.addEventListener('DOMContentLoaded', function () {
+                if (window.claimIntake && window.claimIntake.on) {
+                    window.claimIntake.on('mode-changed', syncReviewModeActive);
+                }
+                syncReviewModeActive();
+            });
+        }
+    })();
+</script>

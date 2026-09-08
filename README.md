@@ -16,7 +16,7 @@ This showcase bundles three end-to-end demos that illustrate how Syncfusion's do
 
 1. **Navigate to the project**:
 ```text
-   cd Syncfusion.SmartDemo
+   cd Syncfusion.SmartDocumentSolutions
 ```
 
 2. **Restore dependencies and build**:
@@ -68,7 +68,7 @@ All runtime secrets and the Syncfusion license are configured in `appsettings.js
 
 ### Step 1: Configure OpenAI Settings
 
-Open `Syncfusion.SmartDemo/appsettings.json` and replace the OpenAI placeholders:
+Open `Syncfusion.SmartDocumentSolutions/appsettings.json` and replace the OpenAI placeholders:
 
 ```json
 {
@@ -82,7 +82,7 @@ Open `Syncfusion.SmartDemo/appsettings.json` and replace the OpenAI placeholders
 
 ### Step 2: Configure Syncfusion License
 
-Open `Syncfusion.SmartDemo/Program.cs` and replace the Syncfusion license placeholder:
+Open `Syncfusion.SmartDocumentSolutions/Program.cs` and replace the Syncfusion license placeholder:
 
 ```csharp
 Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense("YOUR_SYNCFUSION_LICENSE_KEY");
