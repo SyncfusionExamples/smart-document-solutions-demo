@@ -702,7 +702,7 @@
     width: 100%;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1299px) {
     .bp-pack-options { grid-template-columns: 1fr; }
 }
 
@@ -710,7 +710,29 @@
    sections side-by-side. The merge-order pane is the
    primary surface (drag-and-drop needs the room) so it
    gets the wider track; bookmarks is a compact companion
-   list. Falls back to a single column under 1100px. */
+   list.
+
+   Responsive strategy for the embedded iframe host
+   (https://document.syncfusion.com/smart-document-solutions/):
+     * < 1300px -> single column. At ~1101-1299px iframe
+                  widths the centre panel is ~820px wide
+                  which means each pane would shrink to
+                  ~400px — too cramped for the merge-order
+                  row (drag handle + doc-icon + name +
+                  index badge). Stacking to one column at
+                  this point keeps the panes on full width,
+                  matches the .bp-pack-options collapse
+                  (now also at 1100px), and matches the
+                  `upload-shell` collapse that removes the
+                  left rail at the same threshold.
+     * >= 1300px -> two-column side-by-side layout.
+
+   The previous 1100px breakpoint worked on desktop but
+   left the 1101px iframe range broken, so we keep the
+   collapse ceiling at 1300px for the iframe use case
+   without changing the existing 680px mobile breakpoint
+   (which still gives the same single-column behaviour the
+   phone-sized iframe consumer was seeing). */
 .bp-pack-twopane {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
@@ -718,7 +740,7 @@
     align-items: stretch;
     flex: 1 1 0;
     min-height: 0;
-    overflow: hidden;
+    overflow: visible;
 }
 .bp-pack-twopane > .bp-section {
     display: flex;
@@ -730,9 +752,11 @@
     min-height: 0;
     overflow-y: auto;
 }
-@media (max-width: 1100px) {
+@media (max-width: 1299px) {
     .bp-pack-twopane {
         grid-template-columns: 1fr;
+        flex: none;
+        overflow: visible;
     }
 }
 
@@ -838,8 +862,17 @@
     /* Column widths match the document-icon's 40x48 footprint
        (see .bp-doc-icon) and the 32px handle/index cells so
        the icon column lines up with the doc-icon shown in the
-       Pack page's bookmark list. */
-    grid-template-columns: 32px 40px minmax(0, 1fr) 32px;
+       Pack page's bookmark list.
+
+       The fourth column uses `auto` instead of a fixed 32px so
+       long filenames can wrap inside the meta cell while the
+       index badge keeps its own intrinsic width. Combined with
+       `max-width: 100%`, `min-width: 0` and `overflow: hidden`
+       on the row, this prevents the row from forcing a
+       horizontal scroll inside the iframe at narrow centre-panel
+       widths (~410px after the Merge Order / Bookmarks two-pane
+       still tries to fit at 1101-1299px). */
+    grid-template-columns: 32px 40px minmax(0, 1fr) auto;
     align-items: center;
     min-height: 48px;
     gap: 12px;
@@ -851,6 +884,10 @@
     cursor: grab;
     user-select: none;
     transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
+    box-sizing: border-box;
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
 }
 .bp-reorder-row:hover {
     border-color: #c7d7fa;
@@ -874,6 +911,7 @@
     color: #64748b;
     cursor: grab;
     padding: 0;
+    touch-action: none;
     transition: background .15s ease, color .15s ease, border-color .15s ease;
 }
 .bp-reorder-row:hover .bp-reorder-row-handle {
@@ -947,6 +985,10 @@
     border-radius: 12px;
     box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
     transition: border-color .15s ease, box-shadow .15s ease;
+    box-sizing: border-box;
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
 }
 .bp-bookmark-row:hover {
     border-color: #c7d7fa;
