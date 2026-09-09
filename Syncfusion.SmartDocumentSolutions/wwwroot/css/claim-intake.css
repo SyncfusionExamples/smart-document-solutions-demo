@@ -2,15 +2,14 @@ html, body {
     min-height: 100%;
     margin: 0;
     background: #f4f7fb;
-    /* The page itself is rendered as a single viewport-sized
-       surface. Partial-view content that overflows the
-       available height is expected to add its own
-       scrollbar, never the page itself. */
-    overflow: hidden;
+    /* Page owns the vertical scrollbar; horizontal scroll stays
+       clamped so the workflow toolbar never introduces a window-
+       level horizontal scroll. Mirror of contract-review.css. */
 }
 
 body {
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: auto;
 }
 
 html, body, button, input, textarea, select {
@@ -22,15 +21,17 @@ html, body, button, input, textarea, select {
 }
 
 .upload-shell {
-    height: calc(100vh - 100px);
-    min-height: 0;
+    /* min-height + overflow:visible (mirrors .cr-shell in
+       contract-review.css) lets the page scrollbar reach
+       content past 100vh on mobile widths / > 100% zoom. */
+    min-height: calc(100vh - 100px);
     display: grid;
     grid-template-columns: 260px minmax(0, 1fr);
     grid-template-rows: minmax(0, 1fr);
     gap: 12px;
     padding: 10px 14px 18px;
     box-sizing: border-box;
-    overflow: hidden;
+    overflow: visible;
 }
 
 .upload-panel {
@@ -125,12 +126,24 @@ html, body, button, input, textarea, select {
 
 .upload-center {
     min-height: 0;
+    /* overflow:hidden stays the default so the EJ2 PDF viewer
+       (rendered inside .full-viewer-wrap on the View mode)
+       keeps its bounded flex container. The :not() override
+       below re-allows overflow on every other mode. */
     overflow: hidden;
     display: flex;
     flex-direction: column;
     gap: 12px;
     padding-bottom: 12px;
     box-sizing: border-box;
+}
+
+/* Re-enable overflow on every mode that does NOT mount the
+   EJ2 PDF viewer (redact, review, final, choose) so the page
+   scrollbar can reach the bottom of long content like the
+   redaction panel. */
+.upload-center:not(:has(.full-viewer-wrap)) {
+    overflow: visible;
 }
 
 #centre-panel {
@@ -956,23 +969,29 @@ h1, h2, p {
         color: #0f172a;
     }
 
+/* Only the value list scrolls internally; everything else in
+   the page (header, stepper, callout) scrolls with the page.
+   max-height is capped at min(56vh, 640px) so a long list
+   never pushes the whole page; anything past that is
+   reachable by the page scrollbar, not a hidden inner scroll. */
 .redaction-panel {
-    height: 100%;
+    height: auto;
     min-height: 0;
     display: flex;
     flex-direction: column;
     gap: 14px;
-    overflow: hidden;
+    overflow: visible;
 }
 
 .redaction-list {
-    flex: 1 1 auto;
-    min-height: 0;
-    overflow-y: auto;
-    overflow-x: hidden;
     display: grid;
+    grid-auto-rows: max-content;
     gap: 10px;
     padding-right: 2px;
+    max-height: min(56vh, 640px);
+    min-height: 80px;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .redaction-item {
@@ -1608,23 +1627,13 @@ h1, h2, p {
         margin-left: auto;
         padding: 0 0 0 6px;
     }
-}
 
-
-/* Prevent horizontal page overflow. The vertical axis
-   never scrolls - the demo page is rendered as a single
-   viewport-sized surface and any content that overflows
-   is expected to surface its own scrollbar. */
-html,
-body {
-    min-height: 100%;
-    margin: 0;
-    padding: 0;
-    overflow: hidden;
-}
-
-body {
-    overflow: hidden;
+    /* Tiny phones: drop the desktop min-height so the shell
+       shrinks to its content. Mirror of contract-review.css. */
+    .upload-shell {
+        min-height: 0;
+        height: auto;
+    }
 }
 
 
@@ -2316,5 +2325,56 @@ body {
 
 .upload-left .review-mode-panel {
     flex: 0 0 auto;
+}
+
+/* Mobile view: collapse the two-column shell (260 px sidebar + 1fr
+   centre) to a single stacked column so the centre panel can use
+   the full viewport width. At the desktop layout, the fixed 260 px
+   sidebar left only ~210 px for the centre column on a ~520 px
+   viewport, which clamped the long "CLAIM INTAKE DEMO" header +
+   landing intro to one-word-per-line. Stacking removes that
+   constraint entirely. The packet list is the first row so the
+   user sees their files above the centre content, the centre
+   panel takes the remaining width, and the page-level scrollbar
+   (already on via the .upload-shell min-height + overflow:visible
+   rule above) reaches the footer. */
+@media (max-width: 720px) {
+    .upload-shell {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: auto auto;
+        align-items: start;
+    }
+
+    .upload-left,
+    .upload-center {
+        width: 100%;
+    }
+
+    /* The desktop .center-header is a row with
+       `justify-content: space-between`. On mobile there is only
+       one block (title + intro) so flatten the row to a column
+       and let the h1, section-title and landing intro wrap
+       normally across the full viewport width. */
+    .center-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+        padding: 0 16px;
+    }
+
+    .center-header h1 {
+        /* Override the clamp(2.2rem, 2.4vw, 3.2rem) - the 2.4vw
+           term keeps the title megaphone-sized on a 360 px phone
+           (~8.6 px), but the 2.2rem floor (~35 px) plus the
+           wide letter-spacing was forcing per-word wrapping.
+           Cap to ~1.6 rem so all words fit on a single line. */
+        font-size: clamp(1.4rem, 7vw, 1.8rem);
+        letter-spacing: -0.02em;
+    }
+
+    .landing-intro {
+        max-width: none;
+        font-size: 13.5px;
+    }
 }
 

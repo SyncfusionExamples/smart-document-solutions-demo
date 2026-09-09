@@ -1750,6 +1750,38 @@
 
     function attachDragHandlers(list, docs) {
         var dragId = null;
+        var touchDrag = null;
+
+        function clearDragState() {
+            list.querySelectorAll('.bp-reorder-row').forEach(function (r) {
+                r.classList.remove('dragging', 'drop-target-above', 'drop-target-below');
+            });
+            dragId = null;
+            touchDrag = null;
+        }
+
+        function reorderToRow(row, clientY) {
+            if (!dragId || !row) { return; }
+            var rect = row.getBoundingClientRect();
+            var above = (clientY - rect.top) < rect.height / 2;
+            var ids = state.documents
+                .slice()
+                .sort(function (a, b) { return (a.mergeOrder || 0) - (b.mergeOrder || 0); })
+                .map(function (d) { return d.id; });
+            var targetId = row.getAttribute('data-doc-id');
+            if (!targetId || !ids.length) { return; }
+            var fromIdx = ids.indexOf(dragId);
+            var toIdx = ids.indexOf(targetId);
+            if (fromIdx < 0 || toIdx < 0 || fromIdx === toIdx) { return; }
+            ids.splice(fromIdx, 1);
+            var adjust = above ? toIdx : toIdx + 1;
+            var useIdx = fromIdx < adjust ? adjust - 1 : adjust;
+            if (useIdx < 0) { useIdx = 0; }
+            if (useIdx > ids.length) { useIdx = ids.length; }
+            ids.splice(useIdx, 0, dragId);
+            window.boardPack.reorderDocuments(ids);
+        }
+
         list.querySelectorAll('.bp-reorder-row').forEach(function (row) {
             row.addEventListener('dragstart', function (e) {
                 dragId = row.getAttribute('data-doc-id');
@@ -1758,10 +1790,7 @@
                 try { e.dataTransfer.setData('text/plain', dragId); } catch (err) { /* */ }
             });
             row.addEventListener('dragend', function () {
-                list.querySelectorAll('.bp-reorder-row').forEach(function (r) {
-                    r.classList.remove('dragging', 'drop-target-above', 'drop-target-below');
-                });
-                dragId = null;
+                clearDragState();
             });
             row.addEventListener('dragover', function (e) {
                 if (!dragId) { return; }
@@ -1777,25 +1806,46 @@
             row.addEventListener('drop', function (e) {
                 if (!dragId) { return; }
                 e.preventDefault();
-                var rect = row.getBoundingClientRect();
-                var above = (e.clientY - rect.top) < rect.height / 2;
-                var ids = state.documents
-                    .slice()
-                    .sort(function (a, b) { return (a.mergeOrder || 0) - (b.mergeOrder || 0); })
-                    .map(function (d) { return d.id; });
-                var targetId = row.getAttribute('data-doc-id');
-                if (!targetId || !ids.length) { return; }
-                var fromIdx = ids.indexOf(dragId);
-                var toIdx = ids.indexOf(targetId);
-                if (fromIdx < 0 || toIdx < 0 || fromIdx === toIdx) { return; }
-                ids.splice(fromIdx, 1);
-                var adjust = above ? toIdx : toIdx + 1;
-                var useIdx = fromIdx < adjust ? adjust - 1 : adjust;
-                if (useIdx < 0) { useIdx = 0; }
-                if (useIdx > ids.length) { useIdx = ids.length; }
-                ids.splice(useIdx, 0, dragId);
-                window.boardPack.reorderDocuments(ids);
+                reorderToRow(row, e.clientY);
             });
+
+            var handle = row.querySelector('.bp-reorder-row-handle');
+            if (handle) {
+                handle.addEventListener('pointerdown', function (e) {
+                    if (e.pointerType !== 'touch') { return; }
+                    e.preventDefault();
+                    dragId = row.getAttribute('data-doc-id');
+                    touchDrag = { pointerId: e.pointerId };
+                    row.classList.add('dragging');
+                    try { handle.setPointerCapture(e.pointerId); } catch (err) { /* pointer capture is best-effort */ }
+                });
+                handle.addEventListener('pointermove', function (e) {
+                    if (!touchDrag || e.pointerId !== touchDrag.pointerId) { return; }
+                    e.preventDefault();
+                    var target = document.elementFromPoint(e.clientX, e.clientY);
+                    var targetRow = target && target.closest('.bp-reorder-row');
+                    list.querySelectorAll('.bp-reorder-row').forEach(function (r) {
+                        r.classList.remove('drop-target-above', 'drop-target-below');
+                    });
+                    if (targetRow && list.contains(targetRow)) {
+                        var targetRect = targetRow.getBoundingClientRect();
+                        var targetAbove = (e.clientY - targetRect.top) < targetRect.height / 2;
+                        targetRow.classList.toggle('drop-target-above', targetAbove);
+                        targetRow.classList.toggle('drop-target-below', !targetAbove);
+                    }
+                });
+                handle.addEventListener('pointerup', function (e) {
+                    if (!touchDrag || e.pointerId !== touchDrag.pointerId) { return; }
+                    e.preventDefault();
+                    var target = document.elementFromPoint(e.clientX, e.clientY);
+                    var targetRow = target && target.closest('.bp-reorder-row');
+                    if (targetRow && list.contains(targetRow)) {
+                        reorderToRow(targetRow, e.clientY);
+                    }
+                    clearDragState();
+                });
+                handle.addEventListener('pointercancel', clearDragState);
+            }
         });
     }
 

@@ -1508,13 +1508,11 @@
             +   (hideFieldColumn ? '' : '<col class="review-col-field" />')
             +   '<col class="review-col-value" />'
             +   '<col class="review-col-confidence" />'
-            +   '<col class="review-col-action" />'
             + '</colgroup>'
             + '<thead><tr>'
             +   (hideFieldColumn ? '' : '<th>Field</th>')
             +   '<th>Extracted value</th>'
             +   '<th>Confidence</th>'
-            +   '<th>Action</th>'
             + '</tr></thead>'
             + '<tbody>';
 
@@ -1531,10 +1529,6 @@
                 + '</td>'
                 + '<td>'
                 +   '<span class="confidence-badge ' + (lowConf ? 'warn' : 'ok') + '">' + Number(r.confidence).toFixed(2) + '</span>'
-                + '</td>'
-                + '<td class="row-actions">'
-                +   '<button type="button" class="action-btn edit-btn" data-field="' + ui.escapeHtml(r.field) + '">Edit</button>'
-                +   '<button type="button" class="action-btn save-btn" data-field="' + ui.escapeHtml(r.field) + '" style="display:none;">Save</button>'
                 + '</td>'
                 + '</tr>';
         }

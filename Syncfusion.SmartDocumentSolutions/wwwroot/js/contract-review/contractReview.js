@@ -2262,14 +2262,15 @@
         var ctaHtml = isExporting
             ? '<button class="cr-btn cr-btn-outline" id="crProceedExportBtn" type="button" disabled style="display:inline-flex;align-items:center;justify-content:center;cursor:default;opacity:.7;">Rendering\u2026</button>'
             : '<button class="cr-btn cr-btn-primary" id="crProceedExportBtn">Proceed to Export &rarr;</button>';
-        var ctaHint = isExporting
-            ? '<div class="cr-summary-render-hint">Rendering the reviewed PDF on the server. You will be taken to the Export page as soon as the file is ready.</div>'
-            : '';
+        // Hide the inline "Rendering..." hint/message; the button state
+        // is enough to indicate progress.
+        var ctaHint = '';
 
         var proceedInToolbarHtml = showCta
             ? ctaHtml
             : '';
 
+        // UI simplification (per request): keep only the DOCX editor + optional CTA.
         panel.innerHTML = ''
             + '<div class="cr-center-header">'
             +   '<p class="cr-section-title">Contract Review Demo</p>'
@@ -2282,10 +2283,6 @@
             +   '<div class="cr-ai-summary-editor-wrap">'
             +     '<div id="crAiSummaryEditorHost" class="cr-ai-summary-editor"></div>'
             +   '</div>'
-            +   '<details class="cr-summary-changes-collapse">'
-            +     '<summary>Captured review events (' + state.changeLog.length + ')</summary>'
-            +     '<div class="cr-summary-changes">' + rows + '</div>'
-            +   '</details>'
             +   ctaHint
             + '</div>';
 
@@ -2558,9 +2555,7 @@
             newBtn.style.cssText = 'display:inline-flex;align-items:center;justify-content:center;cursor:default;opacity:.7;';
             newBtn.textContent = 'Rendering\u2026';
             btn.parentNode.replaceChild(newBtn, btn);
-            if (hint) {
-                hint.textContent = 'Rendering the reviewed PDF on the server. You will be taken to the Export page as soon as the file is ready.';
-            }
+            // No-op: inline hint intentionally hidden on the AI summary page.
         } else {
             // Restore the primary CTA. Reuses the same
             // disabled style we strip on the way out for
